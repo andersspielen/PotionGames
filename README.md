@@ -1,6 +1,6 @@
 # PotionGamesX
 
-> A Minecraft minigames plugin for Paper 26.1.x servers!
+> A Minecraft minigames plugin for Paper servers!
 
 [![CI Build](https://github.com/lennartabeln/PotionGamesX/actions/workflows/ci.yml/badge.svg)](https://github.com/lennartabeln/PotionGamesX/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/lennartabeln/PotionGamesX/actions/workflows/codeql.yml/badge.svg)](https://github.com/lennartabeln/PotionGamesX/actions/workflows/codeql.yml)
