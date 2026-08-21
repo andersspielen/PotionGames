@@ -26,7 +26,6 @@ public final class Settings {
     public static boolean activateKits = true;
     public static boolean activateShop = true;
     public static boolean activateAirdrops = true;
-    public static boolean activateDeathmatch = true;
     public static int maxPlayers = 24;
     public static int minPlayers = 2;
     public static int teamSize = 2;
@@ -59,7 +58,6 @@ public final class Settings {
         minPlayers = cfg.getInt("pg.defaults.minPlayers", 2);
         teamSize = cfg.getInt("pg.defaults.teamSize", 2);
         roundTime = cfg.getInt("pg.defaults.roundTime", 30) * 60;
-        activateDeathmatch = cfg.getBoolean("pg.activateDeathmatch", true);
         language = cfg.getString("pg.language", "en_US");
     }
 }

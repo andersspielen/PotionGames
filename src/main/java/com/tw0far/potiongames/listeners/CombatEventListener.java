@@ -1,6 +1,7 @@
 package com.tw0far.potiongames.listeners;
 
 import com.tw0far.potiongames.PotionGamesX;
+import com.tw0far.potiongames.models.GameStates;
 import com.tw0far.potiongames.models.Lobby;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.LightningStrike;
@@ -33,27 +34,43 @@ public class CombatEventListener implements Listener {
 
     @EventHandler
     public void onEntityDamageByEntity(EntityDamageByEntityEvent e) {
-            if (e.getEntity() instanceof Player) {
-                e.setCancelled(e.getDamager() instanceof LightningStrike || e.getDamager() instanceof Firework);
-            }
-            if (e.getEntity() instanceof Player p && e.getDamager() instanceof TNTPrimed) {
-                p.setHealth(Math.max(0, p.getHealth() - 4));
-            }
-            if (!plugin.getConfigManager().isFriendlyFire()) {
-                if (e.getEntity() instanceof Player p && e.getDamager() instanceof Player d) {
-                    // Get lobby ID for both players
-                    String pLobby = plugin.getGame().getPlayerLobby(p);
-                    String dLobby = plugin.getGame().getPlayerLobby(d);
+        if (!(e.getEntity() instanceof Player p)) {
+            return;
+        }
 
-                    // Both must be in same lobby for friendly fire check
-                    if (pLobby != null && pLobby.equals(dLobby)) {
-                        String pTeam = getPlayerTeam(pLobby, p);
-                        String dTeam = getPlayerTeam(dLobby, d);
-                        if (Objects.equals(pTeam, dTeam)) {
-                            e.setCancelled(true);
-                        }
-                    }
+        String victimLobby = plugin.getGame().getPlayerLobby(p);
+        boolean inActiveGame = victimLobby != null && isGameState(plugin.getLobbyStateManager().getGameState(victimLobby));
+
+        // Lightning/firework damage is disabled inside active games
+        if (!e.isCancelled()
+                && inActiveGame
+                && (e.getDamager() instanceof LightningStrike || e.getDamager() instanceof Firework)) {
+            e.setCancelled(true);
+            return;
+        }
+
+        // TNT deals bonus damage inside active games
+        if (!e.isCancelled() && inActiveGame && e.getDamager() instanceof TNTPrimed) {
+            e.setDamage(e.getDamage() + 4.0);
+        }
+
+        if (!plugin.getConfigManager().isFriendlyFire() && !e.isCancelled()
+                && e.getDamager() instanceof Player d) {
+            // Both must be in same lobby for friendly fire check
+            String dLobby = plugin.getGame().getPlayerLobby(d);
+
+            if (victimLobby != null && victimLobby.equals(dLobby)
+                    && isGameState(plugin.getLobbyStateManager().getGameState(victimLobby))) {
+                String pTeam = getPlayerTeam(victimLobby, p);
+                String dTeam = getPlayerTeam(dLobby, d);
+                if (Objects.equals(pTeam, dTeam)) {
+                    e.setCancelled(true);
                 }
             }
+        }
+    }
+
+    private boolean isGameState(GameStates state) {
+        return state == GameStates.INGAME || state == GameStates.DEATHMATCH;
     }
 }

@@ -71,8 +71,11 @@ public class StatusCommand implements ICommand {
             .append(Component.text("Database:").color(NamedTextColor.GOLD)));
 
         boolean mysqlActive = plugin.getConfigManager().isActivateMysql();
+        boolean connected = plugin.getDatabaseManager().isConnected();
         player.sendMessage(formatStatusLine("  Mode", mysqlActive ? "MySQL" : "SQLite"));
-        player.sendMessage(formatStatusLine("  Connection", "✓ Connected"));
+        player.sendMessage(Component.text("  Connection").color(NamedTextColor.GRAY)
+            .append(Component.text(": ").color(NamedTextColor.DARK_GRAY))
+            .append(Component.text(connected ? "✓ Connected" : "✗ Disconnected").color(connected ? NamedTextColor.GREEN : NamedTextColor.RED)));
 
         player.sendMessage(Component.text("").color(NamedTextColor.DARK_GRAY)
             .append(Component.text("════════════════════════════════════════").color(NamedTextColor.DARK_GRAY)));
@@ -88,10 +91,12 @@ public class StatusCommand implements ICommand {
 
     private NamedTextColor getStateColor(String state) {
         return switch (state) {
-            case "LOBBY" -> NamedTextColor.BLUE;
-            case "GAME_RUNNING" -> NamedTextColor.GREEN;
+            case "WAITING" -> NamedTextColor.BLUE;
+            case "PREPARING" -> NamedTextColor.AQUA;
+            case "INGAME" -> NamedTextColor.GREEN;
             case "DEATHMATCH" -> NamedTextColor.RED;
-            case "ENDED" -> NamedTextColor.GRAY;
+            case "ENDING" -> NamedTextColor.YELLOW;
+            case "RESET" -> NamedTextColor.GRAY;
             default -> NamedTextColor.WHITE;
         };
     }

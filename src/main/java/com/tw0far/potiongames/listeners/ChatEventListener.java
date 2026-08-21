@@ -2,6 +2,7 @@ package com.tw0far.potiongames.listeners;
 
 import com.tw0far.potiongames.PotionGamesX;
 import com.tw0far.potiongames.models.Lobby;
+import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import io.papermc.paper.event.player.AsyncChatEvent;
@@ -48,8 +49,9 @@ public class ChatEventListener implements Listener {
         }
 
         if (lobbyId != null) {
-            // Filter recipients: only players in the same lobby
+            // Filter recipients: only players in the same lobby (plus console)
             e.viewers().clear();
+            e.viewers().add(Bukkit.getConsoleSender());
 
             // Add active players in same lobby
             for (Player active : plugin.getGame().getPlayersInLobby(lobbyId)) {
@@ -90,6 +92,14 @@ public class ChatEventListener implements Listener {
      * Handle chat input during setup mode
      */
     private void handleSetupChatInput(AsyncChatEvent e, Player p, String input) {
+        // No pending input mode: let normal chat through instead of swallowing it
+        if (!plugin.getSetupStateManager().isAddlobby()
+                && !plugin.getSetupStateManager().isDellobby()
+                && !plugin.getSetupStateManager().isAddarena()
+                && !plugin.getSetupStateManager().isDelarena()) {
+            return;
+        }
+
         // Cancel the chat message from being sent
         e.setCancelled(true);
 

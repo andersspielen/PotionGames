@@ -40,8 +40,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.Random;
 
 /**
@@ -49,7 +47,6 @@ import java.util.Random;
  * Extracted from monolithic Events.java.
  */
 public class InventoryEventListener implements Listener {
-    private static final Logger LOGGER = Logger.getLogger("Minecraft");
     private final PotionGamesX plugin;
 
     public InventoryEventListener(PotionGamesX plugin) {
@@ -76,12 +73,11 @@ public class InventoryEventListener implements Listener {
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent e) {
-        Player p = (Player) e.getWhoClicked();
+        if (!(e.getWhoClicked() instanceof Player p)) {
+            return;
+        }
         // Get lobby ID using Game class methods
         String s = plugin.getGame().getPlayerLobby(p);
-        if (s == null) {
-            s = plugin.getGame().getSpectatorLobby(p);
-        }
         if (s != null) {
             GameStates lobbyState = plugin.getLobbyStateManager().getGameState(s);
             boolean canBuild = plugin.getLobbyStateManager().isBuildAllowed(s);
@@ -89,8 +85,8 @@ public class InventoryEventListener implements Listener {
                 handleArenaVoting(e, p, s);
                 handleTeamSelection(e, p, s);
                 handleKitSelection(e, p, s);
-                handleShop(e, p, s);
             }
+            handleShop(e, p, s);
         }
         handleLobbySelection(e, p);
     }
@@ -198,96 +194,118 @@ public class InventoryEventListener implements Listener {
 
     private void handleArenaVoting(InventoryClickEvent e, Player p, String s) {
         if (e.getView().title().equals(Messages.ArenaSelectorTitle())) {
+            e.setCancelled(true);
             String displayname = getPlainDisplayName(e.getCurrentItem());
-            if (displayname != null) {
-                // Check if player has already voted using delegation
-                if (!plugin.getArenaStateManager().hasPlayerVotedInLobby(s, p)) {
-                    // First time voting - add vote
-                    p.closeInventory();
-                    plugin.getArenaStateManager().addLobbyVote(s, displayname);
-                    plugin.getArenaStateManager().recordPlayerVoteInLobby(s, p, displayname);
-                    try { Lobby lobby = plugin.getGame().getLobby(Integer.parseInt(s)); if (lobby != null) { lobby.recordVote(p, displayname); } } catch (NumberFormatException ignored) { }
-                } else {
-                    // Switching vote - remove old vote and add new
-                    p.closeInventory();
-                    String previousVote = plugin.getArenaStateManager().getPlayerVoteInLobby(s, p);
-                    if (previousVote != null) {
-                        plugin.getArenaStateManager().removeLobbyVote(s, previousVote);
-                    }
-                    plugin.getArenaStateManager().addLobbyVote(s, displayname);
-                    plugin.getArenaStateManager().recordPlayerVoteInLobby(s, p, displayname);
-                    try { Lobby lobby = plugin.getGame().getLobby(Integer.parseInt(s)); if (lobby != null) { lobby.recordVote(p, displayname); } } catch (NumberFormatException ignored) { }
-                }
-
-                // Send feedback messages
-                p.sendMessage(Messages.ArenaSelector());
-                p.sendMessage(Settings.prefix.append(Component.text(Messages.VoteText() + ": ").color(NamedTextColor.GREEN)).append(Component.text(displayname).color(NamedTextColor.LIGHT_PURPLE)));
-                p.sendMessage(Settings.prefix.append(Component.text(Messages.VoteText() + ": ").color(NamedTextColor.GREEN)).append(Component.text(String.valueOf(plugin.getArenaStateManager().getLobbyVoteCount(s, displayname))).color(NamedTextColor.AQUA)));
-                p.sendMessage(Messages.ArenaSelector());
+            if (displayname == null) {
+                return;
             }
+
+            // Switching vote - remove old vote first
+            if (plugin.getArenaStateManager().hasPlayerVotedInLobby(s, p)) {
+                String previousVote = plugin.getArenaStateManager().getPlayerVoteInLobby(s, p);
+                if (previousVote != null) {
+                    plugin.getArenaStateManager().removeLobbyVote(s, previousVote);
+                }
+            }
+            p.closeInventory();
+            plugin.getArenaStateManager().addLobbyVote(s, displayname);
+            plugin.getArenaStateManager().recordPlayerVoteInLobby(s, p, displayname);
+            try {
+                Lobby lobby = plugin.getGame().getLobby(Integer.parseInt(s));
+                if (lobby != null) {
+                    lobby.recordVote(p, displayname);
+                }
+            } catch (NumberFormatException ignored) {
+            }
+
+            // Send feedback messages
+            p.sendMessage(Messages.ArenaSelector());
+            p.sendMessage(Settings.prefix.append(Component.text(Messages.VoteText() + ": ").color(NamedTextColor.GREEN)).append(Component.text(displayname).color(NamedTextColor.LIGHT_PURPLE)));
+            p.sendMessage(Settings.prefix.append(Component.text(Messages.VoteText() + ": ").color(NamedTextColor.GREEN)).append(Component.text(String.valueOf(plugin.getArenaStateManager().getLobbyVoteCount(s, displayname))).color(NamedTextColor.AQUA)));
+            p.sendMessage(Messages.ArenaSelector());
         }
     }
 
     private void handleTeamSelection(InventoryClickEvent e, Player p, String s) {
-        if (plugin.getLobbyStateManager().isActivateTeams(s)) {
-            if (e.getView().title().equals(Messages.SelectorTeamTitle())) {
-                String displayname = getPlainDisplayName(e.getCurrentItem());
-                if (displayname != null) {
-                    int maxteamplayers = plugin.getArenaStateManager().getLobbyTeamSize(s);
+        Lobby lobby = plugin.getGame().getLobby(parseIntSafe(s));
+        if (lobby == null || !lobby.isActivateTeams()) {
+            return;
+        }
+        if (e.getView().title().equals(Messages.SelectorTeamTitle())) {
+            e.setCancelled(true);
+            String displayname = getPlainDisplayName(e.getCurrentItem());
+            if (displayname == null) {
+                return;
+            }
+            int maxteamplayers = plugin.getArenaStateManager().getLobbyTeamSize(s);
 
-                    // Check if player already has a team using delegation
-                    if (!plugin.getArenaStateManager().hasPlayerTeamInLobby(s, p)) {
-                        // First time assigning team
-                        if (displayname.equals(Messages.RandomText())) {
-                            assignRandomTeam(e, p, s, maxteamplayers);
-                        } else {
-                            assignSpecificTeam(e, p, s, displayname, maxteamplayers);
-                        }
-                    } else {
-                        // Switching teams
-                        switchTeam(e, p, s, displayname, maxteamplayers);
-                    }
-                }
+            // Check if player already has a team using delegation
+            if (!plugin.getArenaStateManager().hasPlayerTeamInLobby(s, p)) {
+                // First time assigning team
+                assignTeam(p, s, displayname, maxteamplayers);
+            } else {
+                // Switching teams
+                switchTeam(p, s, displayname, maxteamplayers);
             }
         }
     }
 
-    private void assignRandomTeam(InventoryClickEvent e, Player p, String s, int maxteamplayers) {
-        boolean teamfound = false;
+    private boolean isNumericTeamId(String displayname) {
+        try {
+            Integer.parseInt(displayname);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    private void assignTeam(Player p, String s, String displayname, int maxteamplayers) {
+        if (displayname.equals(Messages.RandomText())) {
+            assignRandomTeam(p, s, maxteamplayers);
+        } else if (isNumericTeamId(displayname)) {
+            assignSpecificTeam(p, s, displayname, maxteamplayers);
+        }
+    }
+
+    private void assignRandomTeam(Player p, String s, int maxteamplayers) {
         Map<Integer, Integer> lobbyTeamsMap = plugin.getArenaStateManager().getLobbyTeams(s);
 
         if (lobbyTeamsMap == null || lobbyTeamsMap.isEmpty()) {
             return;
         }
 
-        while (!teamfound) {
-            Random rnd = new Random();
-            int rndTeam = rnd.nextInt(lobbyTeamsMap.size()) + 1;
-            Integer teamPlayers = plugin.getArenaStateManager().getLobbyTeamPlayerCount(s, rndTeam);
-
+        // Collect teams with free capacity; abort gracefully when all are full
+        List<Integer> available = new ArrayList<>();
+        for (Integer teamId : lobbyTeamsMap.keySet()) {
+            Integer teamPlayers = plugin.getArenaStateManager().getLobbyTeamPlayerCount(s, teamId);
             if (teamPlayers != null && teamPlayers < maxteamplayers) {
-                teamfound = true;
-                p.closeInventory();
-                plugin.getArenaStateManager().incrementLobbyTeamPlayers(s, rndTeam);
-                plugin.getArenaStateManager().recordPlayerTeamInLobby(s, p, Integer.toString(rndTeam));
-
-                // Send feedback
-                p.sendMessage(Messages.SelectorTeam());
-                p.sendMessage(Settings.prefix.append(Component.text(Messages.TeamNowInText() + ": ").color(NamedTextColor.GREEN)).append(Component.text(rndTeam).color(NamedTextColor.LIGHT_PURPLE)));
-                p.sendMessage(Settings.prefix.append(Component.text(Messages.PlayersText() + ": ").color(NamedTextColor.GREEN)).append(Component.text(String.valueOf(plugin.getArenaStateManager().getLobbyTeamPlayerCount(s, rndTeam))).color(NamedTextColor.AQUA)).append(Component.text("/").color(NamedTextColor.GRAY)).append(Component.text(String.valueOf(maxteamplayers)).color(NamedTextColor.AQUA)));
-                p.sendMessage(Messages.SelectorTeam());
-
-                if (plugin.getConfigManager().isActivateScoreboard()) {
-                    var team = p.getScoreboard().getTeam("team");
-                    if (team != null) {
-                        team.prefix(Component.text(Integer.toString(rndTeam)).color(NamedTextColor.DARK_AQUA));
-                    }
-                }
+                available.add(teamId);
             }
         }
+        if (available.isEmpty()) {
+            p.closeInventory();
+            p.sendMessage(Messages.SelectorTeam());
+            p.sendMessage(Messages.TeamAlreadyFull());
+            p.sendMessage(Messages.SelectorTeam());
+            return;
+        }
+
+        Random rnd = new Random();
+        int rndTeam = available.get(rnd.nextInt(available.size()));
+        p.closeInventory();
+        plugin.getArenaStateManager().incrementLobbyTeamPlayers(s, rndTeam);
+        plugin.getArenaStateManager().recordPlayerTeamInLobby(s, p, Integer.toString(rndTeam));
+
+        // Send feedback
+        p.sendMessage(Messages.SelectorTeam());
+        p.sendMessage(Settings.prefix.append(Component.text(Messages.TeamNowInText() + ": ").color(NamedTextColor.GREEN)).append(Component.text(rndTeam).color(NamedTextColor.LIGHT_PURPLE)));
+        p.sendMessage(Settings.prefix.append(Component.text(Messages.PlayersText() + ": ").color(NamedTextColor.GREEN)).append(Component.text(String.valueOf(plugin.getArenaStateManager().getLobbyTeamPlayerCount(s, rndTeam))).color(NamedTextColor.AQUA)).append(Component.text("/").color(NamedTextColor.GRAY)).append(Component.text(String.valueOf(maxteamplayers)).color(NamedTextColor.AQUA)));
+        p.sendMessage(Messages.SelectorTeam());
+
+        applyTeamScoreboardPrefix(p, Integer.toString(rndTeam));
     }
 
-    private void assignSpecificTeam(InventoryClickEvent e, Player p, String s, String displayname, int maxteamplayers) {
+    private void assignSpecificTeam(Player p, String s, String displayname, int maxteamplayers) {
         int teamId = Integer.parseInt(displayname);
         Integer currentPlayers = plugin.getArenaStateManager().getLobbyTeamPlayerCount(s, teamId);
 
@@ -302,12 +320,7 @@ public class InventoryEventListener implements Listener {
             p.sendMessage(Settings.prefix.append(Component.text(Messages.PlayersText() + ": ").color(NamedTextColor.GREEN)).append(Component.text(String.valueOf(plugin.getArenaStateManager().getLobbyTeamPlayerCount(s, teamId))).color(NamedTextColor.AQUA)).append(Component.text("/").color(NamedTextColor.GRAY)).append(Component.text(String.valueOf(maxteamplayers)).color(NamedTextColor.AQUA)));
             p.sendMessage(Messages.SelectorTeam());
 
-            if (plugin.getConfigManager().isActivateScoreboard()) {
-                var team = p.getScoreboard().getTeam("team");
-                if (team != null) {
-                    team.prefix(Component.text(displayname).color(NamedTextColor.DARK_AQUA));
-                }
-            }
+            applyTeamScoreboardPrefix(p, displayname);
         } else {
             p.closeInventory();
             p.sendMessage(Messages.SelectorTeam());
@@ -316,121 +329,166 @@ public class InventoryEventListener implements Listener {
         }
     }
 
-    private void switchTeam(InventoryClickEvent e, Player p, String s, String displayname, int maxteamplayers) {
-        p.closeInventory();
+    private void applyTeamScoreboardPrefix(Player p, String teamName) {
+        if (plugin.getConfigManager().isActivateScoreboard()) {
+            var team = p.getScoreboard().getTeam("team");
+            if (team != null) {
+                team.prefix(Component.text(teamName).color(NamedTextColor.DARK_AQUA));
+            }
+        }
+    }
 
-        // Get player's current team and remove from it
+    private void switchTeam(Player p, String s, String displayname, int maxteamplayers) {
+        Map<Integer, Integer> lobbyTeamsMap = plugin.getArenaStateManager().getLobbyTeams(s);
+
+        // Validate the target team BEFORE leaving the old one so a full team
+        // cannot leave the player teamless.
+        boolean randomRequested = displayname.equals(Messages.RandomText());
+        if (!randomRequested) {
+            if (!isNumericTeamId(displayname)) {
+                return;
+            }
+            int targetTeam = Integer.parseInt(displayname);
+            Integer targetPlayers = plugin.getArenaStateManager().getLobbyTeamPlayerCount(s, targetTeam);
+            if (targetPlayers == null || targetPlayers >= maxteamplayers) {
+                p.closeInventory();
+                p.sendMessage(Messages.SelectorTeam());
+                p.sendMessage(Messages.TeamAlreadyFull());
+                p.sendMessage(Messages.SelectorTeam());
+                return;
+            }
+        } else if (lobbyTeamsMap.isEmpty()) {
+            return;
+        }
+
+        // Leave the current team
         String previousTeam = plugin.getArenaStateManager().getPlayerTeamInLobby(s, p);
-        if (previousTeam != null) {
+        if (previousTeam != null && isNumericTeamId(previousTeam)) {
             plugin.getArenaStateManager().decrementLobbyTeamPlayers(s, Integer.parseInt(previousTeam));
             plugin.getArenaStateManager().removePlayerTeamInLobby(s, p);
         }
 
         // Assign to new team
-        if (displayname.equals(Messages.RandomText())) {
-            assignRandomTeam(e, p, s, maxteamplayers);
+        if (randomRequested) {
+            assignRandomTeam(p, s, maxteamplayers);
         } else {
-            assignSpecificTeam(e, p, s, displayname, maxteamplayers);
+            assignSpecificTeam(p, s, displayname, maxteamplayers);
         }
     }
 
     private void handleKitSelection(InventoryClickEvent e, Player p, String s) {
         if (e.getView().title().equals(Messages.KitSelector())) {
+            e.setCancelled(true);
             String displayname = getPlainDisplayName(e.getCurrentItem());
-            if (displayname != null) {
-                try {
-                    Lobby lobby = plugin.getGame().getLobby(Integer.parseInt(s));
-                    if (lobby == null) return;
-                    Participant participant = lobby.getParticipant(p);
-                    if (participant == null) return;
-                    if (displayname.equals(Messages.RandomText())) {
-                        Random rnd = new Random();
-                        int randomKitIndex = rnd.nextInt(plugin.getConfigManager().getActiveKits()) + 1;
-                        String kitName = Settings.kitdata.getString("pg.kits." + randomKitIndex + ".name");
-                        if (kitName != null) {
-                            participant.setKit(new Kit(randomKitIndex, kitName, ""));
-                            p.closeInventory();
-                            p.sendMessage(Messages.KitNowHave(kitName));
-                        }
-                    } else {
-                        for (int i = 1; i <= plugin.getConfigManager().getActiveKits(); i++) {
-                            String kitName = Settings.kitdata.getString("pg.kits." + i + ".name");
-                            if (kitName != null && kitName.equals(displayname)) {
-                                participant.setKit(new Kit(i, kitName, ""));
-                                p.closeInventory();
-                                p.sendMessage(Messages.KitNowHave(kitName));
-                                break;
-                            }
-                        }
+            if (displayname == null) {
+                return;
+            }
+            Lobby lobby = plugin.getGame().getLobby(parseIntSafe(s));
+            if (lobby == null) return;
+            Participant participant = lobby.getParticipant(p);
+            if (participant == null) return;
+            int activeKits = plugin.getConfigManager().getActiveKits();
+            if (displayname.equals(Messages.RandomText())) {
+                if (activeKits < 1) return;
+                int randomKitIndex = new Random().nextInt(activeKits) + 1;
+                String kitName = Settings.kitdata.getString("pg.kits." + randomKitIndex + ".name");
+                if (kitName != null) {
+                    participant.setKit(new Kit(randomKitIndex, kitName, ""));
+                    p.closeInventory();
+                    p.sendMessage(Messages.KitNowHave(kitName));
+                }
+            } else {
+                for (int i = 1; i <= activeKits; i++) {
+                    String kitName = Settings.kitdata.getString("pg.kits." + i + ".name");
+                    if (kitName != null && kitName.equals(displayname)) {
+                        participant.setKit(new Kit(i, kitName, ""));
+                        p.closeInventory();
+                        p.sendMessage(Messages.KitNowHave(kitName));
+                        break;
                     }
-                } catch (NumberFormatException ignored) {
                 }
             }
         }
     }
 
-    private void handleShop(InventoryClickEvent e, Player p, String s) {
-        if (e.getView().title().equals(Messages.ShopLabel())) {
-            String displayname = getPlainDisplayName(e.getCurrentItem());
-            if (displayname != null) {
-                int amount = p.getTotalExperience() * 10;
-                int bottle = 0;
-                ItemStack bottleItem = plugin.getBottle();
-                for (ItemStack item : p.getInventory().getContents()) {
-                    if (item != null && bottleItem != null && item.getType() == bottleItem.getType()) {
-                        bottle += item.getAmount();
-                    }
-                }
-                int shopitem = 1;
-                // Get shop data from ItemStateManager
-                var itemStateManager = plugin.getItemStateManager();
-                ArrayList<String> shopItems = new ArrayList<>(itemStateManager.getShopItems());
+    private int parseIntSafe(String value) {
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
 
-                for (int i = 0; i < shopItems.size(); i++) {
-                    int coinamount;
-                    Lobby __kl = plugin.getGame().getLobby(Integer.parseInt(s));
-                    String __kn = __kl != null && __kl.getParticipant(p) != null && __kl.getParticipant(p).getKit() != null
-                        ? __kl.getParticipant(p).getKit().getName() : null;
-                    if (__kn != null && __kn.equals(itemStateManager.getShopKit(shopitem - 1))) {
-                        coinamount = itemStateManager.getShopSale(shopitem - 1);
-                    } else {
-                        coinamount = itemStateManager.getShopCost(shopitem - 1);
-                    }
-                    if (displayname.equals(shopItems.get(shopitem - 1))) {
-                        if (bottle >= 1) {
-                            if (amount >= coinamount) {
-                                amount = amount - coinamount;
-                                bottle = bottle - 1;
-                                ItemStack potionType = itemStateManager.getShopPotionType(shopitem - 1);
-                                if (potionType == null) continue;
-                                ItemStack randombarrier = new ItemStack(potionType);
-                                PotionMeta randombarriermeta = (PotionMeta) randombarrier.getItemMeta();
-                                if (randombarriermeta == null) {
-                                    continue;
-                                }
-                                PotionEffect shopPotion = itemStateManager.getShopPotion(shopitem - 1);
-                                if (shopPotion == null) continue;
-                                randombarriermeta.addCustomEffect(new PotionEffect(shopPotion.getType(), shopPotion.getDuration(), shopPotion.getAmplifier(), shopPotion.isAmbient(), shopPotion.hasParticles(), shopPotion.hasIcon()), true);
-                                randombarriermeta.displayName(Component.text(shopItems.get(shopitem - 1)));
-                                randombarrier.setItemMeta(randombarriermeta);
-                                p.getInventory().addItem(randombarrier);
-                                for (int k = 0; k < coinamount; k++) {
-                                    p.getInventory().removeItem(plugin.getCoin());
-                                }
-                                for (int k = 0; k < 1; k++) {
-                                    p.getInventory().removeItem(plugin.getBottle());
-                                }
-                            } else {
-                                p.sendMessage(Messages.YouNotEnoughCoins());
-                            }
-                        } else {
-                            p.sendMessage(Messages.YouNotEmptyBottle());
-                        }
-                    }
-                    shopitem++;
-                }
+    private void handleShop(InventoryClickEvent e, Player p, String s) {
+        if (!e.getView().title().equals(Messages.ShopTitle())) {
+            return;
+        }
+        // The shop GUI is only open during a running game; always protect its items
+        e.setCancelled(true);
+        if (plugin.getLobbyStateManager().getGameState(s) != GameStates.INGAME
+                && plugin.getLobbyStateManager().getGameState(s) != GameStates.DEATHMATCH) {
+            return;
+        }
+        String displayname = getPlainDisplayName(e.getCurrentItem());
+        if (displayname == null) {
+            return;
+        }
+
+        // Count the player's actual coins and bottles
+        ItemStack bottleItem = plugin.getBottle();
+        ItemStack coinItem = plugin.getCoin();
+        int bottles = 0;
+        int coins = 0;
+        for (ItemStack item : p.getInventory().getContents()) {
+            if (item == null) continue;
+            if (bottleItem != null && item.getType() == bottleItem.getType()) bottles += item.getAmount();
+            if (coinItem != null && item.getType() == coinItem.getType()) coins += item.getAmount();
+        }
+
+        var itemStateManager = plugin.getItemStateManager();
+        List<String> shopItems = new ArrayList<>(itemStateManager.getShopItems());
+        for (int idx = 0; idx < shopItems.size(); idx++) {
+            if (!displayname.equals(shopItems.get(idx))) {
+                continue;
             }
-            e.setCancelled(true);
+
+            Lobby lobby = plugin.getGame().getLobby(parseIntSafe(s));
+            String kitName = lobby != null && lobby.getParticipant(p) != null && lobby.getParticipant(p).getKit() != null
+                ? lobby.getParticipant(p).getKit().getName() : null;
+            int coinamount = kitName != null && kitName.equals(itemStateManager.getShopKit(idx))
+                ? itemStateManager.getShopSale(idx)
+                : itemStateManager.getShopCost(idx);
+
+            if (bottles < 1) {
+                p.sendMessage(Messages.YouNotEmptyBottle());
+                break;
+            }
+            if (coins < coinamount) {
+                p.sendMessage(Messages.YouNotEnoughCoins());
+                break;
+            }
+
+            ItemStack potionType = itemStateManager.getShopPotionType(idx);
+            PotionEffect shopPotion = itemStateManager.getShopPotion(idx);
+            if (potionType == null || shopPotion == null) {
+                break;
+            }
+            coins -= coinamount;
+
+            ItemStack potionItem = new ItemStack(potionType);
+            PotionMeta potionMeta = (PotionMeta) potionItem.getItemMeta();
+            if (potionMeta == null) {
+                break;
+            }
+            potionMeta.addCustomEffect(new PotionEffect(shopPotion.getType(), shopPotion.getDuration(), shopPotion.getAmplifier(), shopPotion.isAmbient(), shopPotion.hasParticles(), shopPotion.hasIcon()), true);
+            potionMeta.displayName(Component.text(shopItems.get(idx)));
+            potionItem.setItemMeta(potionMeta);
+            p.getInventory().addItem(potionItem);
+            for (int k = 0; k < coinamount; k++) {
+                p.getInventory().removeItem(plugin.getCoin());
+            }
+            p.getInventory().removeItem(plugin.getBottle());
+            break;
         }
     }
 
@@ -680,8 +738,8 @@ public class InventoryEventListener implements Listener {
                         }
                         return;
                     }
-                } catch (NumberFormatException ex) {
-                    LOGGER.log(Level.WARNING, "[PotionGamesX] Invalid lobby ID on join sign", ex);
+                } catch (NumberFormatException ignored) {
+                    // Not a join sign (line 1 is not a lobby number) - ignore
                 }
 
                 // Check Stats Signs
@@ -771,8 +829,9 @@ public class InventoryEventListener implements Listener {
                     while (Settings.chests.contains("pg.customchests." + chestnumber)) {
                         int chestitem = 1;
                         ConfigurationSection customChest = Settings.chests.getConfigurationSection("pg.customchests." + chestnumber);
+                        if (customChest != null) {
                         Object chestType = customChest.get("chesttype");
-                        if (customChest != null && chestType != null && e.getClickedBlock().getType().toString().equals(chestType.toString())) {
+                        if (chestType != null && e.getClickedBlock().getType().toString().equals(chestType.toString())) {
                             if (customChest.getBoolean("activate")) {
 
                                 String s = plugin.getGame().getPlayerLobby(p);
@@ -818,6 +877,7 @@ public class InventoryEventListener implements Listener {
 
                             }
                         }
+                        }
                         chestnumber++;
                     }
                     var shopChestBlock = Settings.chests.get("pg.chestblocks.shop");
@@ -827,62 +887,64 @@ public class InventoryEventListener implements Listener {
                         boolean isLobbyActivateShop = false;
                         try { isLobbyActivateShop = plugin.getGame().getLobby(Integer.parseInt(s)) != null && plugin.getGame().getLobby(Integer.parseInt(s)).isActivateShop(); } catch (NumberFormatException ignored) { }
                         if (isLobbyActivateShop) {
-                            if (plugin.getLobbyStateManager().getGameState(s) == GameStates.INGAME) {
-                                Inventory inv;
-                                inv = Bukkit.createInventory(p, 9 * 3, Settings.prefix.append(Component.text(Messages.ShopText())).color(NamedTextColor.DARK_AQUA));
+                            Inventory shopInv = null;
+                            if (plugin.getLobbyStateManager().getGameState(s) == GameStates.INGAME
+                                    || plugin.getLobbyStateManager().getGameState(s) == GameStates.DEATHMATCH) {
+                                Inventory inv = Bukkit.createInventory(p, 9 * 3, Messages.ShopTitle());
                                 if (inv == null) return;
-                                try { Lobby lobby = plugin.getGame().getLobby(Integer.parseInt(s)); if (lobby != null) lobby.setChestInventory(e.getClickedBlock().getLocation(), inv.getContents()); } catch (NumberFormatException ignored) { }
                                 var itemStateManager = plugin.getItemStateManager();
-                                ArrayList<String> shopItems = new ArrayList<>(itemStateManager.getShopItems());
-                                int shopitem = 1;
-                                for (int i = 0; i < plugin.getConfigManager().getActivePotions(); i++) {
-                                    int coinamount;
-                                    Lobby _kl = plugin.getGame().getLobby(Integer.parseInt(s));
-                                    String _kn = _kl != null && _kl.getParticipant(p) != null && _kl.getParticipant(p).getKit() != null
-                                        ? _kl.getParticipant(p).getKit().getName() : null;
-                                    if (_kn != null && _kn.equals(itemStateManager.getShopKit(shopitem - 1))) {
-                                        coinamount = itemStateManager.getShopSale(shopitem - 1);
-                                    } else {
-                                        coinamount = itemStateManager.getShopCost(shopitem - 1);
-                                    }
-                                    ItemStack potionType = itemStateManager.getShopPotionType(shopitem - 1);
-                                    if (potionType == null) { shopitem++; continue; }
+                                List<String> shopItems = new ArrayList<>(itemStateManager.getShopItems());
+                                Lobby lobby = plugin.getGame().getLobby(parseIntSafe(s));
+                                String kitName = lobby != null && lobby.getParticipant(p) != null && lobby.getParticipant(p).getKit() != null
+                                    ? lobby.getParticipant(p).getKit().getName() : null;
+                                int slots = Math.min(shopItems.size(), inv.getSize());
+                                for (int idx = 0; idx < slots; idx++) {
+                                    int coinamount = kitName != null && kitName.equals(itemStateManager.getShopKit(idx))
+                                        ? itemStateManager.getShopSale(idx)
+                                        : itemStateManager.getShopCost(idx);
+                                    ItemStack potionType = itemStateManager.getShopPotionType(idx);
+                                    PotionEffect shopPotion = itemStateManager.getShopPotion(idx);
+                                    if (potionType == null || shopPotion == null) continue;
                                     ItemStack randombarrier = new ItemStack(potionType);
                                     ItemMeta randombarriermeta = randombarrier.getItemMeta();
                                     if (randombarriermeta == null) {
                                         continue;
                                     }
-                                    randombarriermeta.displayName(Component.text(shopItems.get(shopitem - 1)));
+                                    randombarriermeta.displayName(Component.text(shopItems.get(idx)));
                                     ArrayList<Component> lore = new ArrayList<>();
-                                    PotionEffect shopPotion = itemStateManager.getShopPotion(shopitem - 1);
-                                    if (shopPotion == null) { shopitem++; continue; }
                                     lore.add(Component.text(Messages.DurationText() + ": " + shopPotion.getDuration() / 20));
                                     lore.add(Component.text(Messages.PriceLabel() + ": " + coinamount + " " + Messages.CoinsText()));
                                     randombarriermeta.lore(lore);
                                     if (!randombarrier.setItemMeta(randombarriermeta)) {
                                         continue;
                                     }
-                                    inv.setItem(shopitem - 1, randombarrier);
-                                    shopitem++;
+                                    inv.setItem(idx, randombarrier);
                                 }
+                                shopInv = inv;
                             }
-                            Inventory chestInv;
-                            try {
-                                Lobby lobby = plugin.getGame().getLobby(Integer.parseInt(s));
-                                if (lobby != null && lobby.hasChestInventory(e.getClickedBlock().getLocation())) {
-                                    Inventory tmpInv = Bukkit.createInventory(null, 27);
-                                    if (tmpInv == null) return;
-                                    ItemStack[] items = lobby.getChestInventory(e.getClickedBlock().getLocation());
-                                    if (items != null) tmpInv.setContents(items);
-                                    chestInv = tmpInv;
-                                } else {
+                            if (shopInv != null) {
+                                try { Lobby lobby = plugin.getGame().getLobby(parseIntSafe(s)); if (lobby != null) lobby.setChestInventory(e.getClickedBlock().getLocation(), shopInv.getContents()); } catch (NumberFormatException ignored) { }
+                                p.openInventory(shopInv);
+                            } else {
+                                // Outside of a game: reopen the previously stored shop view if any
+                                Inventory chestInv;
+                                try {
+                                    Lobby lobby = plugin.getGame().getLobby(parseIntSafe(s));
+                                    if (lobby != null && lobby.hasChestInventory(e.getClickedBlock().getLocation())) {
+                                        Inventory tmpInv = Bukkit.createInventory(null, 27);
+                                        if (tmpInv == null) return;
+                                        ItemStack[] items = lobby.getChestInventory(e.getClickedBlock().getLocation());
+                                        if (items != null) tmpInv.setContents(items);
+                                        chestInv = tmpInv;
+                                    } else {
+                                        chestInv = null;
+                                    }
+                                } catch (NumberFormatException ignored) {
                                     chestInv = null;
                                 }
-                            } catch (NumberFormatException ignored) {
-                                chestInv = null;
-                            }
-                            if (chestInv != null) {
-                                p.openInventory(chestInv);
+                                if (chestInv != null) {
+                                    p.openInventory(chestInv);
+                                }
                             }
                         }
 
@@ -890,7 +952,13 @@ public class InventoryEventListener implements Listener {
 
                         String s = plugin.getGame().getPlayerLobby(p);
                         if (e.getClickedBlock().getBlockData() instanceof Waterlogged) {
-                            plugin.getBlockStateManager().trackLobbyWaterBlock(s, e.getClickedBlock().getLocation(), e.getClickedBlock().getBlockData());
+                            try {
+                                Lobby lobby = plugin.getGame().getLobby(Integer.parseInt(s));
+                                if (lobby != null) {
+                                    lobby.addLiquidBlock(e.getClickedBlock().getLocation(), e.getClickedBlock().getBlockData());
+                                }
+                            } catch (NumberFormatException ignored) {
+                            }
                         }
                 }
             }
@@ -1090,13 +1158,18 @@ public class InventoryEventListener implements Listener {
                         Inventory inv = Bukkit.createInventory(null, 9 * 3, Messages.KitSelector());
                         if (inv == null) return;
                         inv.setItem(0, randombarrier);
-                        for (int i = 1; i <= plugin.getConfigManager().getActiveKits(); i++) {
+                        int kitSlots = Math.min(plugin.getConfigManager().getActiveKits(), inv.getSize() - 1);
+                        for (int i = 1; i <= kitSlots; i++) {
+                            String kitName = Settings.kitdata.getString("pg.kits." + i + ".name");
+                            if (kitName == null) {
+                                continue;
+                            }
                             ItemStack arenamap = new ItemStack(Material.ARMOR_STAND);
                             ItemMeta arenamapmeta = arenamap.getItemMeta();
                             if (arenamapmeta == null) {
                                 continue;
                             }
-                            arenamapmeta.displayName(Component.text(Settings.kitdata.getString("pg.kits." + i + ".name")).color(NamedTextColor.GOLD));
+                            arenamapmeta.displayName(Component.text(kitName).color(NamedTextColor.GOLD));
                             if (!arenamap.setItemMeta(arenamapmeta)) {
                                 continue;
                             }
@@ -1135,25 +1208,27 @@ public class InventoryEventListener implements Listener {
             if (e.getHand() == EquipmentSlot.HAND) {
                 if (p.getInventory().getItemInMainHand().getType() == Material.STICK) {
                     if (isNamedItem(p, Material.STICK, Messages.SetupAddDeleteLobbyLabel())) {
-                        if (p.hasPermission("pg.setup")) {
-                            Location lploc = p.getLocation();
-                            if (lploc == null) return;
-                            var world = lploc.getWorld();
-                            if (world == null) return;
-                            plugin.getConfig().set("pg.Lobby.world", world.getName());
-                            plugin.getConfig().set("pg.Lobby.coords", lploc);
-                            plugin.saveConfig();
-                            p.sendMessage(Messages.LobbySuccessSet());
+                        if (!p.hasPermission("pg.setup")) {
+                            return;
                         }
-                        if (p.hasPermission("pg.setup")) {
-                            p.getInventory().clear();
-                            plugin.getSetupStateManager().setAddlobby(true);
-                            e.setCancelled(true);
-                            p.sendMessage(Messages.LobbyEnabled());
-                        }
+                        Location lploc = p.getLocation();
+                        var world = lploc.getWorld();
+                        if (world == null) return;
+                        plugin.getConfig().set("pg.Lobby.world", world.getName());
+                        plugin.getConfig().set("pg.Lobby.coords", lploc);
+                        plugin.saveConfig();
+                        p.sendMessage(Messages.LobbySuccessSet());
+
+                        p.getInventory().clear();
+                        plugin.getSetupStateManager().setAddlobby(true);
+                        e.setCancelled(true);
                     } else if (isNamedItem(p, Material.STICK, Messages.SetupAddDeleteArenaLabel())) {
+                        if (!p.hasPermission("pg.setup")) {
+                            return;
+                        }
                         p.getInventory().clear();
                         plugin.getSetupStateManager().setAddarena(true);
+                        e.setCancelled(true);
                         p.sendMessage(Messages.TypeArenaNameAdd());
                     } else if (isNamedItem(p, Material.STICK, Messages.SetupAddDeleteSpawnLabel())) {
                         if (handleSetupSpawnAction(p, true)) {

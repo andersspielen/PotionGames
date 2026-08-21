@@ -21,12 +21,16 @@ public class BlockFlowEventListener implements Listener {
     @EventHandler
     public void onBlockFlow(BlockFromToEvent e) {
         for (Lobby lobby : plugin.getGame().getLobbies()) {
-            if (lobby.getState() == GameStates.INGAME
+            if (isGameRunning(lobby)
                     && lobby.getSpawn() != null
                     && lobby.getSpawn().getWorld().equals(e.getBlock().getWorld())) {
                 e.setCancelled(true);
                 return;
             }
         }
+    }
+
+    private boolean isGameRunning(Lobby lobby) {
+        return lobby.getState() == GameStates.INGAME || lobby.getState() == GameStates.DEATHMATCH;
     }
 }

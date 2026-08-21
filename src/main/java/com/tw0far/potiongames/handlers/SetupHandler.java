@@ -117,29 +117,6 @@ public class SetupHandler implements ISetupHandler {
     }
 
     @Override
-    public void enableLobby(Player p, int lobbyId) {
-        Lobby lobby = pg.getGame().getLobby(lobbyId);
-        if (lobby == null) {
-            p.sendMessage(Messages.LobbyDoesNotExist());
-            return;
-        }
-        if (lobby.getArenas().isEmpty() || lobby.getArenas().stream().noneMatch(arena -> !arena.getSpawns().isEmpty())) {
-            p.sendMessage(Settings.prefix.append(Component.text(Messages.SetupIncompleteText()).color(NamedTextColor.RED)));
-            return;
-        }
-        boolean success = lobby.enable();
-        if (success) {
-            if (lobby.isEnabled()) {
-                p.sendMessage(Messages.LobbyEnabled());
-            } else {
-                p.sendMessage(Messages.LobbyDisabled());
-            }
-        } else {
-            p.sendMessage(Messages.FileSaveFailed());
-        }
-    }
-
-    @Override
     public void addLobby(Player p, int lobbyId) {
         boolean success = pg.getGame().addLobby(lobbyId, p.getLocation());
         if (success) {
@@ -321,8 +298,10 @@ public class SetupHandler implements ISetupHandler {
             p.getInventory().setArmorContents(savedArmor);
         }
         p.teleport(pg.getSetupStateManager().getPlayerLocation(p));
-        p.setLevel(pg.getSetupStateManager().getPlayerLevel(p));
-        p.setExp(pg.getSetupStateManager().getPlayerExp(p));
+        Integer savedLevel = pg.getSetupStateManager().getPlayerLevel(p);
+        if (savedLevel != null) p.setLevel(savedLevel);
+        Float savedExp = pg.getSetupStateManager().getPlayerExp(p);
+        if (savedExp != null) p.setExp(savedExp);
         GameMode gm = pg.getSetupStateManager().getPlayerGameMode(p);
         p.setGameMode(gm != null ? gm : GameMode.SURVIVAL);
 

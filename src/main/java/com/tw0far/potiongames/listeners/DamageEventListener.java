@@ -57,6 +57,13 @@ public class DamageEventListener implements Listener {
 
         Player attacker = (Player) e.getDamager();
 
+        // Only manage PvP when at least one participant belongs to a game lobby
+        boolean victimInLobby = plugin.getGame().getPlayerLobby(victim) != null;
+        boolean attackerInLobby = plugin.getGame().getPlayerLobby(attacker) != null;
+        if (!victimInLobby && !attackerInLobby) {
+            return;
+        }
+
         boolean victimActive = plugin.getGame().isActivePlayer(victim);
         boolean attackerActive = plugin.getGame().isActivePlayer(attacker);
 

@@ -22,13 +22,17 @@ public class VersionCommand implements ICommand {
 
     @Override
     public String getPermission() {
-        return "pg.setup";
+        return "pg.update";
     }
 
 
     @Override
     public boolean execute(Player player, String[] args) {
         new UpdateChecker(plugin, 87633).getVersion(version -> {
+            if (version == null) {
+                player.sendMessage(Messages.UpdateCheckerError());
+                return;
+            }
             String currentVersion = plugin.getPluginMeta().getVersion();
             if (currentVersion.equalsIgnoreCase(version)) {
                 player.sendMessage(Messages.UpdateNotAvailable());

@@ -2,6 +2,11 @@ package com.tw0far.potiongames.managers;
 
 public interface IConfigurationManager extends IManager {
 
+    /**
+     * Reload all values from the plugin's current configuration.
+     */
+    void reload();
+
     String getLanguage();
     int getCountdown();
     int getRoundTime();

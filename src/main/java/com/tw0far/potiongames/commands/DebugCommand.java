@@ -27,12 +27,6 @@ public class DebugCommand implements ICommand {
 
     @Override
     public boolean execute(Player player, String[] args) {
-        if (!player.hasPermission("pg.admin")) {
-            player.sendMessage(Component.text("You don't have permission to use this command!")
-                .color(NamedTextColor.RED));
-            return true;
-        }
-
         debugMode = !debugMode;
 
         Component message = Component.text("Debug Mode: ").color(NamedTextColor.GOLD)
@@ -47,14 +41,6 @@ public class DebugCommand implements ICommand {
         }
 
         return true;
-    }
-
-    public boolean isDebugMode() {
-        return debugMode;
-    }
-
-    public void setDebugMode(boolean mode) {
-        this.debugMode = mode;
     }
 
     @Override

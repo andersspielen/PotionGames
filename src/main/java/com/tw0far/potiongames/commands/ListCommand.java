@@ -52,7 +52,7 @@ public class ListCommand implements ICommand {
         for (Lobby lobby : lobbies) {
             int id = lobby.getId();
             int active = lobby.getActivePlayers().size();
-            int max = plugin.getConfigManager().getMaxPlayers();
+            int max = lobby.getMaxPlayers();
 
             ItemStack item = new ItemStack(Material.CHEST);
             ItemMeta meta = item.getItemMeta();

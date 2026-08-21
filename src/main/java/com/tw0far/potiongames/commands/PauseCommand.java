@@ -1,6 +1,7 @@
 package com.tw0far.potiongames.commands;
 
 import com.tw0far.potiongames.PotionGamesX;
+import com.tw0far.potiongames.models.Lobby;
 import com.tw0far.potiongames.models.Messages;
 import org.bukkit.entity.Player;
 
@@ -34,15 +35,20 @@ public class PauseCommand implements ICommand {
         }
 
         if (lobbyId != null) {
-            boolean currentPause = plugin.getLobbyStateManager().isPaused(lobbyId);
-            plugin.getLobbyStateManager().setPaused(lobbyId, !currentPause);
+            try {
+                Lobby lobby = plugin.getGame().getLobby(Integer.parseInt(lobbyId));
+                if (lobby != null) {
+                    lobby.setPaused(!lobby.isPaused());
 
-            boolean paused = plugin.getLobbyStateManager().isPaused(lobbyId);
-            for (Player p : plugin.getGame().getPlayersInLobby(lobbyId)) {
-                p.sendMessage(Messages.PauseToggle(paused));
-            }
-            for (Player p : plugin.getGame().getSpectatorsInLobby(lobbyId)) {
-                p.sendMessage(Messages.PauseToggle(paused));
+                    boolean paused = lobby.isPaused();
+                    for (Player p : plugin.getGame().getPlayersInLobby(lobbyId)) {
+                        p.sendMessage(Messages.PauseToggle(paused));
+                    }
+                    for (Player p : plugin.getGame().getSpectatorsInLobby(lobbyId)) {
+                        p.sendMessage(Messages.PauseToggle(paused));
+                    }
+                }
+            } catch (NumberFormatException ignored) {
             }
         }
         return true;

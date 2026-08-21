@@ -22,8 +22,6 @@ public class Arena {
     private ArrayList<Location> deathmatchSpawns = new ArrayList<>();
     private final Random random = new Random();
 
-    private int voteCount = 0;
-
     public Arena(String name, int lobbyId) {
         this.name = name;
         this.lobbyId = lobbyId;
@@ -92,41 +90,39 @@ public class Arena {
         return new ArrayList<>(spawns);
     }
 
-    public boolean addSpawn(Location spawn) {
-        if (spawn == null) {
-            return false;
-        }
-
-        int nextId = spawns.size();
-        String spawnPath = "pg.lobbies." + lobbyId + ".arenas." + name + ".spawns." + nextId;
-        Settings.lobbies.set(spawnPath, spawn);
-        spawns.add(spawn);
-
-        try {
-            Settings.lobbies.save(Settings.lobbiesFile);
-            return true;
-        } catch (Exception ex) {
-            PotionGamesX.getInstance().getLogger().warning(ex.getMessage());
-            spawns.remove(spawn);
-            return false;
-        }
-    }
-
+    /**
+     * Add or replace a spawn at the given 1-based ID.
+     * The ID must be within [1, size + 1] to keep config keys and the
+     * in-memory list contiguous.
+     */
     public boolean addSpawn(int spawnId, Location spawn) {
-        if (spawn == null) {
+        if (spawn == null || spawnId < 1 || spawnId > spawns.size() + 1) {
             return false;
         }
 
         String spawnPath = "pg.lobbies." + lobbyId + ".arenas." + name + ".spawns." + spawnId;
+        Location previousConfig = Settings.lobbies.getLocation(spawnPath);
+        Location previousMemory = spawnId <= spawns.size() ? spawns.get(spawnId - 1) : null;
+
+        if (spawnId <= spawns.size()) {
+            spawns.set(spawnId - 1, spawn);
+        } else {
+            spawns.add(spawn);
+        }
         Settings.lobbies.set(spawnPath, spawn);
-        spawns.add(spawn);
 
         try {
             Settings.lobbies.save(Settings.lobbiesFile);
             return true;
         } catch (Exception ex) {
             PotionGamesX.getInstance().getLogger().warning(ex.getMessage());
-            spawns.remove(spawn);
+            // Roll back both memory and config so they stay consistent
+            if (spawnId <= spawns.size()) {
+                spawns.set(spawnId - 1, previousMemory);
+            } else {
+                spawns.remove(spawns.size() - 1);
+            }
+            Settings.lobbies.set(spawnPath, previousConfig);
             return false;
         }
     }
@@ -138,14 +134,18 @@ public class Arena {
         }
 
         String spawnPath = "pg.lobbies." + lobbyId + ".arenas." + name + ".spawns." + spawnId;
+        Location removed = spawns.remove(index);
+        Location previousConfig = Settings.lobbies.getLocation(spawnPath);
         Settings.lobbies.set(spawnPath, null);
 
         try {
-            spawns.remove(index);
             Settings.lobbies.save(Settings.lobbiesFile);
             return true;
         } catch (Exception ex) {
             PotionGamesX.getInstance().getLogger().warning(ex.getMessage());
+            // Roll back both memory and config so they stay consistent
+            spawns.add(index, removed);
+            Settings.lobbies.set(spawnPath, previousConfig);
             return false;
         }
     }
@@ -161,41 +161,39 @@ public class Arena {
         return deathmatchSpawns.get(random.nextInt(deathmatchSpawns.size()));
     }
 
-    public boolean addDeathmatchSpawn(Location spawn) {
-        if (spawn == null) {
-            return false;
-        }
-
-        int nextId = deathmatchSpawns.size();
-        String spawnPath = "pg.lobbies." + lobbyId + ".arenas." + name + ".deathmatch." + nextId;
-        Settings.lobbies.set(spawnPath, spawn);
-        deathmatchSpawns.add(spawn);
-
-        try {
-            Settings.lobbies.save(Settings.lobbiesFile);
-            return true;
-        } catch (Exception ex) {
-            PotionGamesX.getInstance().getLogger().warning(ex.getMessage());
-            deathmatchSpawns.remove(spawn);
-            return false;
-        }
-    }
-
+    /**
+     * Add or replace a deathmatch spawn at the given 1-based ID.
+     * The ID must be within [1, size + 1] to keep config keys and the
+     * in-memory list contiguous.
+     */
     public boolean addDeathmatchSpawn(int spawnId, Location spawn) {
-        if (spawn == null) {
+        if (spawn == null || spawnId < 1 || spawnId > deathmatchSpawns.size() + 1) {
             return false;
         }
 
         String spawnPath = "pg.lobbies." + lobbyId + ".arenas." + name + ".deathmatch." + spawnId;
+        Location previousConfig = Settings.lobbies.getLocation(spawnPath);
+        Location previousMemory = spawnId <= deathmatchSpawns.size() ? deathmatchSpawns.get(spawnId - 1) : null;
+
+        if (spawnId <= deathmatchSpawns.size()) {
+            deathmatchSpawns.set(spawnId - 1, spawn);
+        } else {
+            deathmatchSpawns.add(spawn);
+        }
         Settings.lobbies.set(spawnPath, spawn);
-        deathmatchSpawns.add(spawn);
 
         try {
             Settings.lobbies.save(Settings.lobbiesFile);
             return true;
         } catch (Exception ex) {
             PotionGamesX.getInstance().getLogger().warning(ex.getMessage());
-            deathmatchSpawns.remove(spawn);
+            // Roll back both memory and config so they stay consistent
+            if (spawnId <= deathmatchSpawns.size()) {
+                deathmatchSpawns.set(spawnId - 1, previousMemory);
+            } else {
+                deathmatchSpawns.remove(deathmatchSpawns.size() - 1);
+            }
+            Settings.lobbies.set(spawnPath, previousConfig);
             return false;
         }
     }
@@ -207,30 +205,20 @@ public class Arena {
         }
 
         String spawnPath = "pg.lobbies." + lobbyId + ".arenas." + name + ".deathmatch." + spawnId;
+        Location removed = deathmatchSpawns.remove(index);
+        Location previousConfig = Settings.lobbies.getLocation(spawnPath);
         Settings.lobbies.set(spawnPath, null);
 
         try {
-            deathmatchSpawns.remove(index);
             Settings.lobbies.save(Settings.lobbiesFile);
             return true;
         } catch (Exception ex) {
             PotionGamesX.getInstance().getLogger().warning(ex.getMessage());
+            // Roll back both memory and config so they stay consistent
+            deathmatchSpawns.add(index, removed);
+            Settings.lobbies.set(spawnPath, previousConfig);
             return false;
         }
-    }
-
-    public synchronized void recordVote(Player player) {
-        if (player != null) {
-            voteCount++;
-        }
-    }
-
-    public synchronized int getVoteCount() {
-        return voteCount;
-    }
-
-    public synchronized void resetVotes() {
-        voteCount = 0;
     }
 
     public String getName() {
@@ -243,8 +231,10 @@ public class Arena {
         }
         for (int i = 0; i < participants.size(); i++) {
             Participant participant = participants.get(i);
-            Location spawnLocation = spawns.get(i % spawns.size());
-            participant.getPlayer().teleport(spawnLocation);
+            Player player = participant.getPlayer();
+            if (player != null && player.isOnline()) {
+                player.teleport(spawns.get(i % spawns.size()));
+            }
         }
     }
 }

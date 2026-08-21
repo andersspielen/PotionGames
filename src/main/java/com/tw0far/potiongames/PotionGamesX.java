@@ -32,10 +32,8 @@ public class PotionGamesX extends JavaPlugin {
     private final Game game = new Game();
     private IConfigurationManager configManager;
     private ILobbyStateManager lobbyStateManager;
-    private IPlayerStateManager playerStateManager;
     private IArenaStateManager arenaStateManager;
     private IItemStateManager itemStateManager;
-    private IBlockStateManager blockStateManager;
     private ISetupStateManager setupStateManager;
     private IDatabaseManager databaseManager;
     private ISetupHandler setupHandler;
@@ -44,10 +42,8 @@ public class PotionGamesX extends JavaPlugin {
     public Game getGame() { return game; }
     public IConfigurationManager getConfigManager() { return configManager; }
     public ILobbyStateManager getLobbyStateManager() { return lobbyStateManager; }
-    public IPlayerStateManager getPlayerStateManager() { return playerStateManager; }
     public IArenaStateManager getArenaStateManager() { return arenaStateManager; }
     public IItemStateManager getItemStateManager() { return itemStateManager; }
-    public IBlockStateManager getBlockStateManager() { return blockStateManager; }
     public ISetupStateManager getSetupStateManager() { return setupStateManager; }
     public IDatabaseManager getDatabaseManager() { return databaseManager; }
     public ISetupHandler getSetupHandler() { return setupHandler; }
@@ -75,16 +71,12 @@ public class PotionGamesX extends JavaPlugin {
         configManager.onEnable();
 
         // Initialize state managers
-        lobbyStateManager = new LobbyStateManager(this);
+        lobbyStateManager = new LobbyStateManager();
         lobbyStateManager.onEnable();
-        playerStateManager = new PlayerStateManager();
-        playerStateManager.onEnable();
         arenaStateManager = new ArenaStateManager();
         arenaStateManager.onEnable();
         itemStateManager = new ItemStateManager();
         itemStateManager.onEnable();
-        blockStateManager = new BlockStateManager();
-        blockStateManager.onEnable();
         setupStateManager = new SetupStateManager();
         setupStateManager.onEnable();
 
@@ -94,16 +86,12 @@ public class PotionGamesX extends JavaPlugin {
 
         PluginManager pm = Bukkit.getPluginManager();
 
-        // Register new event listeners (refactored from monolithic Events.java)
+        // Register event listeners (refactored from monolithic Events.java)
         // Player-related events
         pm.registerEvents(new PlayerEventListener(this), this);
-        pm.registerEvents(new RespawnEventListener(this), this);
         pm.registerEvents(new SpectatorEventListener(this), this);
-        pm.registerEvents(new TeleportEventListener(this), this);
         pm.registerEvents(new ChatEventListener(this), this);
         pm.registerEvents(new ItemDropEventListener(this), this);
-        pm.registerEvents(new ItemConsumeEventListener(this), this);
-        pm.registerEvents(new FoodLevelEventListener(this), this);
 
         // Block-related events
         pm.registerEvents(new BlockEventListener(this), this);
@@ -119,7 +107,6 @@ public class PotionGamesX extends JavaPlugin {
 
         // Environmental events
         pm.registerEvents(new WeatherEventListener(this), this);
-        pm.registerEvents(new ExplosionEventListener(this), this);
         pm.registerEvents(new CreatureSpawnEventListener(this), this);
         pm.registerEvents(new SignChangeEventListener(), this);
 
@@ -153,6 +140,10 @@ public class PotionGamesX extends JavaPlugin {
             getComponentLogger().info(Messages.PluginStarted());
         }
         new UpdateChecker(this, 87633).getVersion(version -> {
+            if (version == null) {
+                getComponentLogger().info(Messages.UpdateCheckerError());
+                return;
+            }
             if (getPluginMeta().getVersion().equalsIgnoreCase(version)) {
                 getComponentLogger().info(Messages.UpdateNotAvailable().append(Component.text(" " + getPluginMeta().getVersion()).color(NamedTextColor.GRAY)));
             } else {
@@ -175,41 +166,29 @@ public class PotionGamesX extends JavaPlugin {
     public void onDisable() {
         log.info(String.format("[%s] Disabled Version %s", getPluginMeta().getName(), getPluginMeta().getVersion()));
 
-        // Disable state managers and database manager
-        if (configManager != null) configManager.onDisable();
+        // Remove all players from lobbies while managers are still alive,
+        // restoring inventories/locations before anything is torn down.
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            String lobbyId = game.getPlayerLobby(player);
+            if (lobbyId != null) {
+                onLeaveLobby(player, lobbyId);
+            }
+        }
+
+        boolean gameServer = configManager != null && (configManager.isGameServer() || configManager.isStartOnJoin());
+        if (gameServer) {
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                player.kick(Messages.ServerStopped());
+            }
+        }
+
+        // Shut down managers and database last
         if (lobbyStateManager != null) lobbyStateManager.onDisable();
-        if (playerStateManager != null) playerStateManager.onDisable();
         if (arenaStateManager != null) arenaStateManager.onDisable();
         if (itemStateManager != null) itemStateManager.onDisable();
-        if (blockStateManager != null) blockStateManager.onDisable();
+        if (configManager != null) configManager.onDisable();
         if (databaseManager != null) databaseManager.onDisable();
 
-        if (configManager.isGameServer() || configManager.isStartOnJoin()) {
-            for (Player all : Bukkit.getOnlinePlayers()) {
-                if (all == null) continue;
-                all.kick(Messages.ServerStopped());
-            }
-        }
-        if (!configManager.isStartOnJoin()) {
-            for (Player all : playerStateManager.getActivePlayers()) {
-                playerStateManager.removeActivePlayer(all);
-                onLeave(all);
-            }
-            for (Player all : playerStateManager.getSpectators()) {
-                playerStateManager.removeSpectator(all);
-                onLeave(all);
-            }
-        }
-        for (Player all : Bukkit.getOnlinePlayers()) {
-            String playerLobbyId = game.getPlayerLobby(all);
-            if (playerLobbyId != null) {
-                onLeaveLobby(all, playerLobbyId);
-            }
-            String spectatorLobbyId = game.getSpectatorLobby(all);
-            if (spectatorLobbyId != null) {
-                onLeaveLobby(all, spectatorLobbyId);
-            }
-        }
         getComponentLogger().info(Messages.PluginStopped());
     }
 

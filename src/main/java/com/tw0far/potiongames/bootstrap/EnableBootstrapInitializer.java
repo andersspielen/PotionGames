@@ -8,7 +8,6 @@ import com.tw0far.potiongames.models.Settings;
 import com.tw0far.potiongames.util.PotionSerialization;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffect;
@@ -112,92 +111,32 @@ public final class EnableBootstrapInitializer {
     private void initializeLobbies() {
         new RankWallUpdater(plugin).start();
 
-        for (int lobby = 1; lobby <= 27; lobby++) {
-            if (!Settings.lobbies.contains("pg.lobbies." + lobby)) {
-                continue;
-            }
+        var ism = plugin.getItemStateManager();
+        ism.getKitplayersRaw().put(Messages.RandomText(), 0);
+        for (String kit : ism.getKitsRaw()) {
+            ism.getKitplayersRaw().put(kit, 0);
+        }
 
+        for (var gameLobby : plugin.getGame().getLobbies()) {
+            int lobby = gameLobby.getId();
             String s = Integer.toString(lobby);
-            var lsm = plugin.getLobbyStateManager();
             var asm = plugin.getArenaStateManager();
 
-            lsm.setCheckArenas(s, false);
-            lsm.setActivateTeams(s, true);
-            lsm.setActivateKits(s, true);
-            lsm.setActivateShop(s, true);
-            lsm.setActivateAirdrops(s, true);
-            lsm.setJoinable(s, true);
-            lsm.setForcearena(s, false);
-            lsm.setDeathmatchEnabled(s, false);
-            lsm.setMoveAllowed(s, true);
-            lsm.setVoteallowed(s, false);
-            lsm.setTeamallowed(s, false);
-            lsm.setKitallowed(s, false);
-            lsm.setLobbyAmount(s, 0);
-            lsm.setTickstarted(s, true);
-            lsm.setBuildAllowed(s, false);
-            lsm.setPaused(s, false);
-            lsm.setCurrentVote(s, null);
-            lsm.setVotedArena(s, null);
-            lsm.setMaxPlayers(s, 24);
-            lsm.setMinPlayers(s, 12);
-            lsm.setRoundTime(s, 30);
-            lsm.setRoundTimeSeconds(s, 1800);
-            asm.setLobbyTeamSize(s, 2);
-            asm.initializeLobbyTeams(s, 12);
+            // Build mode starts disabled each boot; the Lobby model owns all other
+            // per-lobby settings (loaded via LobbyConfig from lobbies.yml).
+            plugin.getLobbyStateManager().setBuildAllowed(s, false);
 
-            syncLobbyConfig(s, "activateTeams", plugin.getConfigManager().isActivateTeams(),
-                    value -> lsm.setActivateTeams(s, value));
-            syncLobbyConfig(s, "activateKits", plugin.getConfigManager().isActivateKits(),
-                    value -> lsm.setActivateKits(s, value));
-            syncLobbyConfig(s, "activateShop", plugin.getConfigManager().isActivateShop(),
-                    value -> lsm.setActivateShop(s, value));
-            syncLobbyConfig(s, "activateAirdrops", false,
-                    value -> lsm.setActivateAirdrops(s, value));
+            // Team selector state: team size and one empty slot per team.
             syncLobbyConfig(s, "teamSize", 2,
-                    value -> { asm.setLobbyTeamSize(s, value);
-                               asm.initializeLobbyTeams(s, 12 / value); });
-            syncLobbyConfig(s, "maxPlayers", 24,
-                    value -> { lsm.setMaxPlayers(s, value);
-                               lsm.setMinPlayers(s, value / 2); });
-            syncLobbyConfig(s, "minPlayers", 12,
-                    value -> lsm.setMinPlayers(s, value));
-            syncLobbyConfig(s, "roundTime", 30,
-                    value -> { lsm.setRoundTime(s, value);
-                               lsm.setRoundTimeSeconds(s, value * 60); });
+                    value -> { int teamSize = Math.max(1, value);
+                               int maxPlayers = Math.max(1, Settings.lobbies.getInt("pg.lobbies." + s + ".maxPlayers", 24));
+                               int minPlayers = Math.max(1, Settings.lobbies.getInt("pg.lobbies." + s + ".minPlayers", 12));
+                               int capacity = Math.max(maxPlayers, minPlayers);
+                               asm.setLobbyTeamSize(s, teamSize);
+                               asm.initializeLobbyTeams(s, Math.max(1, capacity / teamSize)); });
 
-            lsm.setRoundTimeSeconds(s, lsm.getRoundTime(s) * 60);
-
-            if (!lsm.isVoteallowed(s)) {
-                lsm.setVoteallowed(s, true);
-                String arenasPath = "pg.lobbies." + s + ".arenas";
-                if (Settings.lobbies.contains(arenasPath)) {
-                    ConfigurationSection arenasSection = Settings.lobbies.getConfigurationSection(arenasPath);
-                    for (String arenaName : arenasSection.getKeys(false)) {
-                        asm.addLobbyVote(s, arenaName);
-                        asm.removeLobbyVote(s, arenaName); // keep at 0
-                    }
-                }
-            }
-
-            if (!lsm.isTeamallowed(s)) {
-                lsm.setTeamallowed(s, true);
-                asm.initializeLobbyTeams(s, 12 / asm.getLobbyTeamSize(s));
-            }
-
-            if (!lsm.isKitallowed(s)) {
-                lsm.setKitallowed(s, true);
-                var ism = plugin.getItemStateManager();
-                ism.getKitplayersRaw().put(Messages.RandomText(), 0);
-                for (String all : ism.getKitsRaw()) {
-                    ism.getKitplayersRaw().put(all, 0);
-                }
-            }
-
-            lsm.setGameState(s, GameStates.WAITING);
-            if (plugin.getGame().getLobby(lobby) != null) {
-                plugin.getGame().getLobby(lobby).startTick();
-            }
+            plugin.getLobbyStateManager().setGameState(s, GameStates.WAITING);
+            gameLobby.startTick();
         }
     }
 

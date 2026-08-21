@@ -5,6 +5,8 @@ import com.tw0far.potiongames.models.Game;
 import com.tw0far.potiongames.models.GameStates;
 import com.tw0far.potiongames.models.Lobby;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -94,7 +96,6 @@ public class ReloadHandler {
                         lobby.clearParticipants();
                         lobby.clearVoting();
                         lobby.clearTeams();
-                        lobby.clearArenaVotes();
                         lobby.clearChests();
                         lobby.clearBlockTracking();
                         lobby.setCurrentArena(null);
@@ -113,31 +114,52 @@ public class ReloadHandler {
     }
 
     /**
-     * Step 2: Clear all player data and restore inventories
+     * Step 2: Clear all player data and fully restore setup players
      */
     private void clearPlayerData() {
         try {
-            // Restore inventories for active players
             List<Player> allPlayers = new ArrayList<>(Bukkit.getOnlinePlayers());
             for (Player player : allPlayers) {
                 try {
-                    // Check if we have stored inventory data
-                    if (plugin.getSetupStateManager().getPlayerInventory(player) != null) {
-                        ItemStack[] inventory = plugin.getSetupStateManager().getPlayerInventory(player);
-                        ItemStack[] armor = plugin.getSetupStateManager().getPlayerArmor(player);
-
-                        if (inventory != null) {
-                            player.getInventory().setContents(inventory);
-                        }
-                        if (armor != null) {
-                            player.getInventory().setArmorContents(armor);
-                        }
-
-                        plugin.getSetupStateManager().removeSavedInventory(player);
-                        plugin.getSetupStateManager().removeSavedArmor(player);
+                    var ssm = plugin.getSetupStateManager();
+                    if (!ssm.isSetupPlayer(player)) {
+                        continue;
                     }
 
+                    // Restore inventory and armor
+                    ItemStack[] inventory = ssm.getPlayerInventory(player);
+                    if (inventory != null) {
+                        player.getInventory().setContents(inventory);
+                    }
+                    ItemStack[] armor = ssm.getPlayerArmor(player);
+                    if (armor != null) {
+                        player.getInventory().setArmorContents(armor);
+                    }
 
+                    // Restore location and attributes saved by SetupHandler.setup()
+                    Location savedLocation = ssm.getPlayerLocation(player);
+                    if (savedLocation != null) {
+                        player.teleport(savedLocation);
+                    }
+                    Integer level = ssm.getPlayerLevel(player);
+                    if (level != null) player.setLevel(level);
+                    Float exp = ssm.getPlayerExp(player);
+                    if (exp != null) player.setExp(exp);
+                    GameMode gameMode = ssm.getPlayerGameMode(player);
+                    player.setGameMode(gameMode != null ? gameMode : GameMode.SURVIVAL);
+                    Double health = ssm.getPlayerHealth(player);
+                    player.setHealth(health != null ? health : 20.0);
+                    Integer food = ssm.getPlayerFoodLevel(player);
+                    player.setFoodLevel(food != null ? food : 20);
+
+                    ssm.removeSavedInventory(player);
+                    ssm.removeSavedArmor(player);
+                    ssm.removeSavedLevel(player);
+                    ssm.removeSavedExp(player);
+                    ssm.removeSavedLocation(player);
+                    ssm.removeSavedGameMode(player);
+                    ssm.removeSavedHealth(player);
+                    ssm.removeSavedFoodLevel(player);
                 } catch (Exception e) {
                     plugin.getLogger().log(Level.WARNING, "Error restoring player " + player.getName(), e);
                 }
@@ -179,14 +201,11 @@ public class ReloadHandler {
     private void clearCollections() {
         try {
             // Use managers to clear their collections
-            plugin.getPlayerStateManager().clearAll();
             plugin.getLobbyStateManager().clearAllLobbies();
             plugin.getArenaStateManager().clearAll();
             plugin.getItemStateManager().clearAll();
-            plugin.getBlockStateManager().clearAll();
             plugin.getGame().clearAllPlayers();
             plugin.getGame().clearShopItems();
-            plugin.getGame().clearAllLoot();
             plugin.getSetupStateManager().clearAllSetupPlayers();
 
             plugin.getLogger().info("All collections cleared");
@@ -202,6 +221,8 @@ public class ReloadHandler {
     private void reloadConfiguration() {
         try {
             plugin.reloadConfig();
+            plugin.getConfigManager().reload();
+            com.tw0far.potiongames.models.Settings.loadSettings(plugin);
             plugin.getLogger().info("Configuration reloaded");
         } catch (Exception e) {
             plugin.getLogger().log(Level.WARNING, "Error reloading configuration", e);
@@ -227,7 +248,13 @@ public class ReloadHandler {
         try {
             if (plugin.getGame() != null) {
                 plugin.getGame().load();
+                // Restart the per-lobby tick loops (cancelled in step 3)
+                for (Lobby lobby : plugin.getGame().getLobbies()) {
+                    lobby.startTick();
+                }
             }
+            // Restart the rank wall updater (cancelled in step 3)
+            new com.tw0far.potiongames.bootstrap.RankWallUpdater(plugin).start();
             plugin.getLogger().info("Game data reloaded");
         } catch (Exception e) {
             plugin.getLogger().log(Level.WARNING, "Error reloading game data", e);

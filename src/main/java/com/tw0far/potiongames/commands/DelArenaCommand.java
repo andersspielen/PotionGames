@@ -1,7 +1,6 @@
 package com.tw0far.potiongames.commands;
 
 import com.tw0far.potiongames.PotionGamesX;
-import com.tw0far.potiongames.models.Lobby;
 import com.tw0far.potiongames.models.Messages;
 import org.bukkit.entity.Player;
 
@@ -38,17 +37,12 @@ public class DelArenaCommand implements ICommand {
         try {
             int lobbyId = Integer.parseInt(args[1]);
             String arenaName = args[2];
-            Lobby lobby = plugin.getGame().getLobby(lobbyId);
-            if (lobby == null) {
+            if (plugin.getGame().getLobby(lobbyId) == null) {
                 player.sendMessage(Messages.LobbyDoesNotExist());
                 return false;
             }
-            if (lobby.removeArena(arenaName)) {
-                player.sendMessage(Messages.ArenaRemoved(arenaName, lobbyId));
-                return true;
-            }
-            player.sendMessage(Messages.ArenaCouldNotLoad());
-            return false;
+            plugin.getSetupHandler().removeArena(player, arenaName, lobbyId);
+            return true;
         } catch (NumberFormatException ex) {
             player.sendMessage(Messages.CommandDelarenaUsageText());
             return false;

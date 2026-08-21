@@ -28,7 +28,7 @@ public class StatsCommand implements ICommand {
 
     @Override
     public boolean execute(Player player, String[] args) {
-        if (args.length == 0) {
+        if (args.length < 2) {
             // Show stats for command sender
             int wins = plugin.getDatabaseManager().getWins(player.getUniqueId().toString());
             int losses = plugin.getDatabaseManager().getLosses(player.getUniqueId().toString());
@@ -46,8 +46,8 @@ public class StatsCommand implements ICommand {
             player.sendMessage(Messages.KDLabel(kd));
             player.sendMessage(Messages.StatsLabel());
         } else {
-            // Show stats for specified player
-            Player target = Bukkit.getPlayer(args[0]);
+            // Show stats for specified player (args[0] is the subcommand itself)
+            Player target = Bukkit.getPlayer(args[1]);
             player.sendMessage(Messages.StatsLabel());
             if (target != null) {
                 int wins = plugin.getDatabaseManager().getWins(target.getUniqueId().toString());

@@ -47,9 +47,7 @@ public class ForceCommand implements ICommand {
                 if (lobby != null) {
                     Arena targetArena = lobby.getArena(arena);
                     if (targetArena != null) {
-                        plugin.getLobbyStateManager().setForcearena(lobbyId, true);
                         lobby.setCurrentArena(targetArena);
-                        plugin.getLobbyStateManager().setVotedArena(lobbyId, arena);
 
                         // Broadcast to all players in this lobby
                         for (Player all : plugin.getGame().getPlayersInLobby(lobbyId)) {
@@ -59,8 +57,7 @@ public class ForceCommand implements ICommand {
                         player.sendMessage(Messages.ArenaNotArena(arena));
                     }
                 }
-            } catch (Exception ex) {
-                player.sendMessage(Messages.ArenaNotArena(arena));
+            } catch (NumberFormatException ignored) {
             }
         }
         return true;

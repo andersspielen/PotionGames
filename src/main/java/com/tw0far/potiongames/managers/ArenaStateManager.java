@@ -8,15 +8,11 @@ public class ArenaStateManager implements IArenaStateManager {
     // Per-lobby voting
     private final Map<String, Map<String, Integer>> lobbyvotes = new HashMap<>();
     private final Map<String, Map<Player, String>> lobbyvoteplayernames = new HashMap<>();
-    private final Map<Player, String> lobbyvoted = new HashMap<>();  // Player -> lobbyId
-    private final Map<Player, String> lobbyVoted = new HashMap<>();  // Player -> voted arena
 
     // Per-lobby team state
     private final Map<String, Map<Integer, Integer>> lobbyteams = new HashMap<>();
     private final Map<String, Map<Player, String>> lobbyteamplayernames = new HashMap<>();
-    private final Map<Player, String> lobbyTeamed = new HashMap<>();
     private final Map<String, Integer> lobbyteamSize = new HashMap<>();
-    private final Map<String, Integer> lobbyteamAmount = new HashMap<>();
 
     @Override
     public void onEnable() {
@@ -59,7 +55,6 @@ public class ArenaStateManager implements IArenaStateManager {
     public void recordPlayerVoteInLobby(String lobbyId, Player player, String arenaName) {
         Map<Player, String> lobbyPlayerVotes = lobbyvoteplayernames.computeIfAbsent(lobbyId, k -> new HashMap<>());
         lobbyPlayerVotes.put(player, arenaName);
-        lobbyvoted.put(player, lobbyId);
     }
 
     @Override
@@ -84,8 +79,6 @@ public class ArenaStateManager implements IArenaStateManager {
     public void clearAllLobbyVotes() {
         lobbyvotes.clear();
         lobbyvoteplayernames.clear();
-        lobbyvoted.clear();
-        lobbyVoted.clear();
     }
 
     // ===== LOBBY TEAM MANAGEMENT =====
@@ -120,7 +113,6 @@ public class ArenaStateManager implements IArenaStateManager {
     public void recordPlayerTeamInLobby(String lobbyId, Player player, String teamId) {
         Map<Player, String> teamPlayers = lobbyteamplayernames.computeIfAbsent(lobbyId, k -> new HashMap<>());
         teamPlayers.put(player, teamId);
-        lobbyTeamed.put(player, lobbyId);
     }
 
     @Override
@@ -138,7 +130,6 @@ public class ArenaStateManager implements IArenaStateManager {
         if (teamPlayers != null) {
             teamPlayers.remove(player);
         }
-        lobbyTeamed.remove(player);
     }
 
     @Override
@@ -162,7 +153,6 @@ public class ArenaStateManager implements IArenaStateManager {
         for (int i = 1; i <= teamCount; i++) {
             teams.put(i, 0);
         }
-        lobbyteamAmount.put(lobbyId, teamCount);
     }
 
     @Override
@@ -185,8 +175,6 @@ public class ArenaStateManager implements IArenaStateManager {
     private void clearAllLobbyTeams() {
         lobbyteams.clear();
         lobbyteamplayernames.clear();
-        lobbyTeamed.clear();
         lobbyteamSize.clear();
-        lobbyteamAmount.clear();
     }
 }

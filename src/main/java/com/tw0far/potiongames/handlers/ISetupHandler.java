@@ -4,7 +4,6 @@ import org.bukkit.entity.Player;
 
 public interface ISetupHandler {
     void setup(Player p);
-    void enableLobby(Player p, int lobbyId);
     void addLobby(Player p, int lobbyId);
     void removeLobby(Player p, int lobbyId);
     void setJoinSign(Player p);

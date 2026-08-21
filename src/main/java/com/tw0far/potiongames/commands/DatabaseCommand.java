@@ -40,11 +40,22 @@ public class DatabaseCommand implements ICommand {
         plugin.getConfig().set("pg.activateMySQL", newState);
         plugin.saveConfig();
 
+        // Apply immediately: reconnect with the new database mode
+        try {
+            plugin.getDatabaseManager().closeConnection();
+            plugin.getDatabaseManager().connect();
+        } catch (Exception ex) {
+            plugin.getLogger().warning("Database reconnect failed: " + ex.getMessage());
+        }
+        boolean connected = plugin.getDatabaseManager().isConnected();
+
         // Send message to player
         String dbType = newState ? "MySQL" : "SQLite";
         Component message = Component.text("Database mode switched to ")
             .color(NamedTextColor.AQUA)
-            .append(Component.text(dbType).color(NamedTextColor.GREEN));
+            .append(Component.text(dbType).color(NamedTextColor.GREEN))
+            .append(Component.text(connected ? " (connected)" : " (connection failed!)")
+                .color(connected ? NamedTextColor.GREEN : NamedTextColor.RED));
 
         player.sendMessage(message);
 

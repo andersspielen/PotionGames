@@ -61,11 +61,9 @@ public class Messages {
         addDefault(lang, "game.starts_in", "The game starts in");
         addDefault(lang, "game.starts_now", "The game starts now!");
         addDefault(lang, "game.waiting", "Waiting for players! [%d/%d]");
-        addDefault(lang, "head.set", "Head successfully set!");
         addDefault(lang, "help.use_pg_help", "Use /pg help for help!");
         addDefault(lang, "join.could_not_join_lobby", "Could not join lobby!");
         addDefault(lang, "join.already_in_lobby", "You are already in a lobby!");
-        addDefault(lang, "join.success", "Successfully joined lobby");
         addDefault(lang, "kd.label", "K/D");
         addDefault(lang, "kill.reward", "For killing a player you get");
         addDefault(lang, "killed.by", "was killed by");
@@ -76,10 +74,8 @@ public class Messages {
         addDefault(lang, "leave.label", "Leave");
         addDefault(lang, "lobby.could_not_spawn", "could not be teleported to a spawn!");
         addDefault(lang, "lobby.could_not_teleport", "could not be teleported to the lobby!");
-        addDefault(lang, "lobby.disabled", "Lobby disabled!");
         addDefault(lang, "lobby.does_not_exist", "This lobby does not exists!");
         addDefault(lang, "arena.does_not_exist", "This arena does not exists!");
-        addDefault(lang, "lobby.enabled", "Lobby enabled!");
         addDefault(lang, "lobby.removed_success", "Lobby successfully removed!");
         addDefault(lang, "lobby.starting_broadcast", "Lobby %s is starting! Join with /pg join %s");
         addDefault(lang, "lobby.success_set", "Lobby successfully set!");
@@ -208,10 +204,6 @@ public class Messages {
         return prefix(Component.text(String.format(pattern, spawnId, arenaName, lobbyId)).color(NamedTextColor.GREEN));
     }
 
-    public static Component AdminPleaseInform() {
-        return prefix(Component.text(get("admin.please_inform", "Please inform an admin!")).color(NamedTextColor.RED));
-    }
-
     public static Component AirdropFallingAt(String location) {
         return prefix(Component.text(get("airdrop.falling_at", "Airdrop is falling at") + " " + location).color(NamedTextColor.GOLD));
     }
@@ -261,36 +253,12 @@ public class Messages {
         return prefix(Component.text(get("coin.single", "Coin")).color(NamedTextColor.GOLD));
     }
 
-    public static Component CoinsLabel() {
-        return prefix(Component.text(get("coins.label", "Coins")).color(NamedTextColor.GOLD));
-    }
-
     public static String CoinsText() {
         return get("coins.label", "Coins");
     }
 
     public static Component CommandsLabel() {
         return prefix(Component.text("--------------" + get("commands.label",  "Commands") + "--------------").color(NamedTextColor.GRAY));
-    }
-
-    public static Component DatabaseClosed() {
-        return prefix(Component.text(get("database.closed", "Connection to database closed!")).color(NamedTextColor.GREEN));
-    }
-
-    public static Component DatabaseCloseFailed() {
-        return prefix(Component.text(get("database.close_failed", "Failed to close connection to database! For more information see console.")).color(NamedTextColor.RED));
-    }
-
-    public static Component DatabaseConnectFailed() {
-        return prefix(Component.text(get("database.connect_failed", "Connection to database failed! For more information see console.")).color(NamedTextColor.RED));
-    }
-
-    public static Component DatabaseConnected() {
-        return prefix(Component.text(get("database.connected", "Connection to database established!")).color(NamedTextColor.GREEN));
-    }
-
-    public static Component DeadLabel(Component playerName, Component message) {
-        return prefix(Component.text(get("dead.label", "[Dead]")).color(NamedTextColor.DARK_RED).append(Component.text(" " + playerName + ": " + message).color(NamedTextColor.DARK_AQUA)));
     }
 
     public static Component DeathmatchStarted() {
@@ -301,20 +269,8 @@ public class Messages {
         return prefix(Component.text(get("deathmatch.starting_in", "Deathmatch is starting in") + " " + time).color(NamedTextColor.GOLD));
     }
 
-    public static Component DeathmatchTeleportIn(int time) {
-        return prefix(Component.text(get("deathmatch.teleport_in", "Teleporting to deathmatch arena in") + " " + time).color(NamedTextColor.YELLOW));
-    }
-
-    public static Component DeathmatchTeleportNow() {
-        return prefix(Component.text(get("deathmatch.teleport_now", "Teleporting to deathmatch arena now!")).color(NamedTextColor.YELLOW));
-    }
-
     public static Component DeathsLabel(int deaths) {
         return prefix(Component.text(get("deaths.label", "Deaths") + ": ").color(NamedTextColor.GREEN).append(Component.text(deaths).color(NamedTextColor.AQUA)));
-    }
-
-    public static Component DurationLabel() {
-        return prefix(Component.text(get("duration.label", "Duration")).color(NamedTextColor.AQUA));
     }
 
     public static String DurationText() {
@@ -345,32 +301,16 @@ public class Messages {
         return prefix(Component.text(get("game.starts_in", "The game starts in") + ": ").color(NamedTextColor.GREEN).append(Component.text(time).color(NamedTextColor.AQUA)));
     }
 
-    public static Component GameStartsNow() {
-        return prefix(Component.text(get("game.starts_now", "The game starts now!")).color(NamedTextColor.GREEN));
-    }
-
     public static Component GameWaiting(int players, int minPlayers) {
         return Component.text(String.format(get("game.waiting", "Waiting for players! [%d/%d]"), players, minPlayers)).color(NamedTextColor.GRAY);
-    }
-
-    public static Component HeadSet() {
-        return prefix(Component.text(get("head.set", "Head successfully set!")).color(NamedTextColor.GREEN));
     }
 
     public static Component HelpUsePgHelp() {
         return prefix(Component.text(get("help.use_pg_help", "Use /pg help for help!")).color(NamedTextColor.AQUA));
     }
 
-    public static Component JoinCouldNotJoinLobby() {
-        return prefix(Component.text(get("join.could_not_join_lobby", "Could not join lobby!")).color(NamedTextColor.RED));
-    }
-
     public static Component JoinAlreadyInLobby() {
         return prefix(Component.text(get("join.already_in_lobby", "You are already in a lobby!")).color(NamedTextColor.RED));
-    }
-
-    public static Component JoinSuccess() {
-        return prefix(Component.text(get("join.success", "Successfully joined lobby")).color(NamedTextColor.GREEN));
     }
 
     public static Component KDLabel(double kd) {
@@ -379,18 +319,6 @@ public class Messages {
 
     public static Component KillReward(int amount) {
         return prefix(Component.text(get("kill.reward", "For killing a player you get") + " " + amount).color(NamedTextColor.GOLD));
-    }
-
-    public static Component KilledBy() {
-        return prefix(Component.text(get("killed.by", "was killed by")).color(NamedTextColor.DARK_RED));
-    }
-
-    public static Component Died() {
-        return prefix(Component.text(get("died", "died")).color(NamedTextColor.GRAY));
-    }
-
-    public static Component KilledBy(String playerName) {
-        return prefix(Component.text(get("killed.by", "was killed by") + " " + playerName).color(NamedTextColor.DARK_RED));
     }
 
     public static Component KillsLabel(int kills) {
@@ -417,10 +345,6 @@ public class Messages {
         return Component.text(KitSelectorText()).color(NamedTextColor.DARK_AQUA);
     }
 
-    public static Component LeaveLabel() {
-        return prefix(Component.text(get("leave.label", "Leave")).color(NamedTextColor.RED));
-    }
-
     public static String LeaveText() {
         return get("leave.label", "Leave");
     }
@@ -429,37 +353,12 @@ public class Messages {
         return Component.text(LeaveText()).color(NamedTextColor.DARK_AQUA);
     }
 
-    public static Component LobbyCouldNotSpawn() {
-        return prefix(Component.text(get("lobby.could_not_spawn", "could not be teleported to a spawn!")).color(NamedTextColor.RED));
-    }
-
-    public static Component LobbyCouldNotTeleport() {
-        return prefix(Component.text(get("lobby.could_not_teleport", "could not be teleported to the lobby!")).color(NamedTextColor.RED));
-    }
-
-    public static Component LobbyDisabled() {
-        return prefix(Component.text(get("lobby.disabled", "Lobby disabled!")).color(NamedTextColor.GRAY));
-    }
-
     public static Component LobbyDoesNotExist() {
         return prefix(Component.text(get("lobby.does_not_exist", "This lobby does not exists!")).color(NamedTextColor.RED));
     }
 
     public static Component ArenaDoesNotExist() {
         return prefix(Component.text(get("arena.does_not_exist", "This arena does not exists!")).color(NamedTextColor.RED));
-    }
-
-    public static Component LobbyEnabled() {
-        return prefix(Component.text(get("lobby.enabled", "Lobby enabled!")).color(NamedTextColor.GREEN));
-    }
-
-    public static Component LobbyRemovedSuccess() {
-        return prefix(Component.text(get("lobby.removed_success", "Lobby successfully removed!")).color(NamedTextColor.GREEN));
-    }
-
-    public static Component LobbyStartingBroadcast(String lobbyId) {
-        String pattern = get("lobby.starting_broadcast", "Lobby %s is starting! Join with /pg join %s");
-        return prefix(Component.text(String.format(pattern, lobbyId, lobbyId)).color(NamedTextColor.GRAY));
     }
 
     public static Component LobbySuccessSet() {
@@ -539,10 +438,6 @@ public class Messages {
         return prefix(Component.text(get("spawn.none_to_remove", "No spawns to remove!")).color(NamedTextColor.YELLOW));
     }
 
-    public static Component NoDeathmatchSpawnsToRemove() {
-        return prefix(Component.text(get("deathmatch_spawn.none_to_remove", "No deathmatch spawns to remove!")).color(NamedTextColor.YELLOW));
-    }
-
     public static Component SetupAddDeleteLobbyLabel() {
         return Component.text(get("setup.add_delete_lobby", "Add(Left)/Del(Right) Lobby")).color(NamedTextColor.DARK_AQUA);
     }
@@ -571,10 +466,6 @@ public class Messages {
         return Component.text(get("sign.prefix", "[PG]")).color(NamedTextColor.GOLD);
     }
 
-    public static Component BuildLabel() {
-        return prefix(Component.text(get("build.label", "Build")).color(NamedTextColor.GREEN));
-    }
-
     public static Component LobbySelected(int lobbyId) {
         return prefix(Component.text(String.format(get("lobby.selected", "Lobby %d selected!"), lobbyId)).color(NamedTextColor.GREEN));
     }
@@ -587,16 +478,8 @@ public class Messages {
         return prefix(Component.text(get("lobby.invalid_selection", "Invalid lobby selection!")).color(NamedTextColor.RED));
     }
 
-    public static Component PlayersLabel() {
-        return prefix(Component.text(get("players.label", "Players")).color(NamedTextColor.GRAY));
-    }
-
     public static String PlayersText() {
         return get("players.label", "Players");
-    }
-
-    public static Component PluginReloaded() {
-        return prefix(Component.text(get("plugin.reloaded", "Plugin successfully reloaded!")).color(NamedTextColor.GREEN));
     }
 
     public static Component PluginStarted() {
@@ -611,10 +494,6 @@ public class Messages {
         return prefix(Component.text(get("price.label", "Price")).color(NamedTextColor.GOLD));
     }
 
-    public static Component RandomLabel() {
-        return prefix(Component.text(RandomText()).color(NamedTextColor.AQUA));
-    }
-
     public static String RandomText() {
         return get("random.label", "Random");
     }
@@ -625,10 +504,6 @@ public class Messages {
 
     public static Component RankwallCouldNotUpdate() {
         return prefix(Component.text(get("rankwall.could_not_update", "Could not update Rank-Wall!")).color(NamedTextColor.RED));
-    }
-
-    public static Component RewardLabel() {
-        return prefix(Component.text(get("reward.label", "Reward")).color(NamedTextColor.GOLD));
     }
 
     public static Component RoundNobodyWon() {
@@ -667,20 +542,16 @@ public class Messages {
         return prefix(Component.text(get("server.stopped", "Server stopped!")).color(NamedTextColor.RED));
     }
 
-    public static Component ShopLabel() {
-        return prefix(Component.text(get("shop.label", "Shop")).color(NamedTextColor.AQUA));
-    }
-
     public static String ShopText() {
         return get("shop.label", "Shop");
     }
 
-    public static Component SignSet() {
-        return prefix(Component.text(get("sign.set", "Sign successfully set!")).color(NamedTextColor.GREEN));
+    public static Component ShopTitle() {
+        return Component.text(ShopText()).color(NamedTextColor.DARK_AQUA);
     }
 
-    public static Component SpawnInvalid() {
-        return prefix(Component.text(get("spawn.invalid", "is not a valid spawn!")).color(NamedTextColor.RED));
+    public static Component SignSet() {
+        return prefix(Component.text(get("sign.set", "Sign successfully set!")).color(NamedTextColor.GREEN));
     }
 
     public static String StatsText() {
@@ -707,40 +578,12 @@ public class Messages {
         return get("team.now_in", "You are now in team");
     }
 
-    public static Component TeleportToArenaFailed() {
-        return prefix(Component.text(get("teleport.to_arena_failed", "Could not teleport to arena!")).color(NamedTextColor.RED));
-    }
-
-    public static Component TeleportToDmFailed() {
-        return prefix(Component.text(get("teleport.to_dm_failed", "Could not teleport to deathmatch arena!")).color(NamedTextColor.RED));
-    }
-
     public static Component TeleportToLobbyIn(int time) {
         return prefix(Component.text(get("teleport.to_lobby_in", "Teleporting to lobby in") + " " + time).color(NamedTextColor.YELLOW));
     }
 
-    public static Component TeleportToLobbyNow() {
-        return prefix(Component.text(get("teleport.to_lobby_now", "Teleporting to lobby now!")).color(NamedTextColor.YELLOW));
-    }
-
-    public static Component TntExtremelyExplosive() {
-        return prefix(Component.text(get("tnt.extremely_explosive", "Extremely explosive TNT")).color(NamedTextColor.DARK_AQUA));
-    }
-
     public static Component TypeArenaNameAdd() {
         return prefix(Component.text(get("type.arena_name_add", "Type arena name in chat to add it!")).color(NamedTextColor.YELLOW));
-    }
-
-    public static Component TypeArenaNameRemove() {
-        return prefix(Component.text(get("type.arena_name_remove", "Type arena name in chat to remove it!")).color(NamedTextColor.YELLOW));
-    }
-
-    public static Component TypeLobbyNumberAdd() {
-        return prefix(Component.text(get("type.lobby_number_add", "Type lobby number in chat to add it!")).color(NamedTextColor.YELLOW));
-    }
-
-    public static Component TypeLobbyNumberRemove() {
-        return prefix(Component.text(get("type.lobby_number_remove", "Type lobby number in chat to remove it!")).color(NamedTextColor.YELLOW));
     }
 
     public static Component UpdateAvailable(String currentVersion, String newVersion) {
@@ -755,16 +598,8 @@ public class Messages {
         return prefix(Component.text(get("update.not_available", "There is not a new update available.")).color(NamedTextColor.GRAY));
     }
 
-    public static Component VoteLabel() {
-        return prefix(Component.text(get("vote.label", "Votes")).color(NamedTextColor.AQUA));
-    }
-
     public static String VoteText() {
         return get("vote.label", "Votes");
-    }
-
-    public static Component VoteYouHaveVotedFor(String arena) {
-        return prefix(Component.text(get("vote.you_have_voted_for", "You have voted for") + " " + arena).color(NamedTextColor.GREEN));
     }
 
     public static Component WillBePlayed(String arena) {
@@ -783,20 +618,12 @@ public class Messages {
         return prefix(Component.text(get("you.block_above", "You have a block above you!")).color(NamedTextColor.YELLOW));
     }
 
-    public static Component YouInSpectatorMode() {
-        return prefix(Component.text(get("you.in_spectator_mode", "in spectator mode")).color(NamedTextColor.GRAY));
-    }
-
     public static Component WinReward(int amount) {
         return prefix(Component.text(get("won.reward", "For winning the round you get") + " " + amount).color(NamedTextColor.GOLD));
     }
 
     public static Component PlayerFinderDistance(int distance) {
         return prefix(Component.text(get("player.finder_distance", "Blocks away from next player") + ": ").color(NamedTextColor.GREEN).append(Component.text(distance).color(NamedTextColor.AQUA)));
-    }
-
-    public static Component JoinLeaveSuccess() {
-        return prefix(Component.text(get("join.leave_success", "Successfully left lobby")).color(NamedTextColor.GREEN));
     }
 
     public static Component YouNotEmptyBottle() {
@@ -880,7 +707,6 @@ public class Messages {
     public static String ListNoLobbiesText() { return get("list.no_lobbies", "No lobbies available."); }
     public static String SetupDisabledText() { return get("setup.disabled", "Setup mode disabled."); }
     public static String SetupEnabledText() { return get("setup.enabled", "Setup mode enabled."); }
-    public static String SetupIncompleteText() { return get("setup.incomplete", "Lobby setup is incomplete: add at least one arena with one spawn before enabling the lobby."); }
     public static String SetupNoBlockInRangeText() { return get("setup.no_block_in_range", "No block in range to set as join sign."); }
     public static String SetupNoDeathmatchSpawnsText() { return get("setup.no_deathmatch_spawns", "No deathmatch spawns are configured for that arena."); }
     public static String SetupNoSpawnsText() { return get("setup.no_spawns", "No spawns are configured for that arena."); }

@@ -5,7 +5,10 @@ import java.io.DataOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
@@ -15,6 +18,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.block.sign.Side;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -29,7 +33,6 @@ public class Lobby {
     private Location spawn;
     private final LobbyConfig lobbyConfig;
 
-    private boolean enabled = false;
     private boolean activateTeams = true;
     private boolean activateKits = true;
     private boolean activateShop = true;
@@ -38,7 +41,6 @@ public class Lobby {
     private int maxPlayers = 24;
     private int minPlayers = 2;
     private int teamSize = 2;
-    private int teamAmount = Math.max(1, teamSize > 0 ? maxPlayers / teamSize : maxPlayers);
 
     private int playerCount = 0;
     private ArrayList<Participant> participants = new ArrayList<>();
@@ -64,30 +66,24 @@ public class Lobby {
 
     // Runtime boolean flags (per-lobby state)
     private boolean deathmatch = false;
-    private boolean move = true;
     private boolean joinable = true;
     private boolean pause = false;
 
     // Per-lobby chests
     private HashMap<Location, ItemStack[]> chests = new HashMap<>();
 
-    // Per-lobby block tracking
-    private HashMap<Location, Object> placedBlocks = new HashMap<>();    // Location -> Material
-    private HashMap<Location, Object> breakedBlocks = new HashMap<>();    // Location -> Material
-    private HashMap<Location, Object> waterBlocks = new HashMap<>();               // Location -> BlockData
-    private HashMap<Location, Object> liquidPlaced = new HashMap<>();              // Location -> Block
+    // Per-lobby block tracking (for restoring the arena at RESET)
+    private HashMap<Location, Material> placedBlocks = new HashMap<>();
+    private HashMap<Location, Material> breakedBlocks = new HashMap<>();
+    private HashMap<Location, BlockData> liquidBlocks = new HashMap<>();
 
     // Per-lobby voting
-    private HashMap<String, Integer> lobbyvotes = new HashMap<>();                 // arena -> count
-    private HashMap<Player, String> lobbyvoteplayernames = new HashMap<>();        // player -> voted arena
-
+    // Votes are tracked per participant (see Participant#getVotedArena); the
+    // authoritative display counts live in ArenaStateManager.
 
     // Per-lobby teams
     private HashMap<Integer, Integer> lobbyteams = new HashMap<>();               // team id -> player count
     private HashMap<Player, String> lobbyteamplayernames = new HashMap<>();       // player -> team id
-    private HashMap<Player, String> lobbyTeamed = new HashMap<>();                // player -> team status
-    private int lobbyteamSize = teamSize;                                         // team size
-    private int lobbyteamAmount = teamAmount;                                     // number of teams
 
     public Lobby(int id) {
         this.id = id;
@@ -114,7 +110,6 @@ public class Lobby {
         this.activateKits = lobbyConfig.isActivateKits();
         this.activateShop = lobbyConfig.isActivateShop();
         this.activateAirdrops = lobbyConfig.isActivateAirdrops();
-        this.teamAmount = maxPlayers / teamSize;
     }
 
     public Arena getArena(String name) {
@@ -124,18 +119,6 @@ public class Lobby {
             }
         }
         return null;
-    }
-
-    public boolean enable() {
-        enabled = !enabled;
-        Settings.lobbies.set("pg.lobbies." + id + ".enabled", enabled);
-        try {
-            Settings.lobbies.save(Settings.lobbiesFile);
-            return true;
-        } catch (Exception ex) {
-            PotionGamesX.getInstance().getLogger().warning(ex.getMessage());
-            return false;
-        }
     }
 
     public void load() {
@@ -165,7 +148,6 @@ public class Lobby {
             teamSize = Settings.lobbies.getInt("pg.lobbies." + id + ".teamSize");
         }
 
-        enabled = Settings.lobbies.getBoolean("pg.lobbies." + id + ".enabled");
         spawn = Settings.lobbies.getLocation("pg.lobbies." + id + ".spawn");
         joinSign = null;
         if (Settings.lobbies.contains("pg.lobbies." + id + ".joinSign")) {
@@ -187,7 +169,6 @@ public class Lobby {
 
     public boolean add(Location spawn) {
         this.spawn = spawn;
-        Settings.lobbies.set("pg.lobbies." + id + ".enabled", enabled);
         Settings.lobbies.set("pg.lobbies." + id + ".spawn", spawn);
         Settings.lobbies.set("pg.lobbies." + id + ".activateTeams", activateTeams);
         Settings.lobbies.set("pg.lobbies." + id + ".activateKits", activateKits);
@@ -412,6 +393,9 @@ public class Lobby {
     }
 
     private Arena getVotedArena() {
+        if (arenas.isEmpty()) {
+            return null;
+        }
         Arena topArena = arenas.get((int)(Math.random() * arenas.size()));
         int topVotes = 0;
         for (Arena arena : arenas) {
@@ -456,26 +440,10 @@ public class Lobby {
             return;
         }
 
-        String oldVote = lobbyvoteplayernames.get(player);
-        if (oldVote != null) {
-            int oldVotes = lobbyvotes.getOrDefault(oldVote, 0);
-            if (oldVotes > 0) {
-                lobbyvotes.put(oldVote, oldVotes - 1);
-            }
-        }
-
-        lobbyvoteplayernames.put(player, arenaName);
-        lobbyvotes.put(arenaName, lobbyvotes.getOrDefault(arenaName, 0) + 1);
-
         Participant participant = getParticipant(player);
         Arena arena = getArena(arenaName);
-        if (arena != null) {
-            arena.recordVote(player);
-            if (participant != null) {
-                participant.setVotedArena(arena);
-            }
-        } else if (participant != null) {
-            participant.setVotedArena(null);
+        if (participant != null) {
+            participant.setVotedArena(arena);
         }
     }
 
@@ -494,7 +462,6 @@ public class Lobby {
         }
 
         lobbyteamplayernames.put(player, teamName);
-        lobbyTeamed.put(player, "true");
 
         try {
             incrementTeamCount(Integer.parseInt(teamName));
@@ -508,26 +475,24 @@ public class Lobby {
         }
 
         clearTeams();
-        int computedTeamSize = Math.max(1, teamSize);
-        int computedTeamAmount = Math.max(1, (int) Math.ceil((double) activePlayers.size() / computedTeamSize));
-        lobbyteamSize = computedTeamSize;
-        lobbyteamAmount = computedTeamAmount;
+        int size = Math.max(1, teamSize);
+        int amount = Math.max(1, (int) Math.ceil((double) activePlayers.size() / size));
 
-        for (int i = 1; i <= lobbyteamAmount; i++) {
+        for (int i = 1; i <= amount; i++) {
             lobbyteams.put(i, 0);
         }
 
         int teamId = 1;
         for (Player player : new ArrayList<>(activePlayers)) {
-            while (lobbyteams.getOrDefault(teamId, 0) >= lobbyteamSize) {
+            while (lobbyteams.getOrDefault(teamId, 0) >= size) {
                 teamId++;
-                if (teamId > lobbyteamAmount) {
+                if (teamId > amount) {
                     teamId = 1;
                 }
             }
             recordTeamAssignment(player, Integer.toString(teamId));
             teamId++;
-            if (teamId > lobbyteamAmount) {
+            if (teamId > amount) {
                 teamId = 1;
             }
         }
@@ -624,16 +589,20 @@ public class Lobby {
                 break;
             case RESET:
                 restoreBlocks();
-                for (Player player : new ArrayList<>(activePlayers)) {
-                    sendToServer(player, PotionGamesX.getInstance().getConfig().getString("pg.bungeeServer", "hub"));
+                PotionGamesX plugin = PotionGamesX.getInstance();
+                // On a dedicated game server, send everyone back to the hub
+                if (plugin.getConfigManager().isGameServer()) {
+                    String hubServer = plugin.getConfig().getString("pg.bungeeServer", "hub");
+                    for (Player player : new ArrayList<>(activePlayers)) {
+                        sendToServer(player, hubServer);
+                    }
+                    for (Player player : new ArrayList<>(spectatorPlayers)) {
+                        sendToServer(player, hubServer);
+                    }
                 }
-                for (Player player : new ArrayList<>(spectatorPlayers)) {
-                    sendToServer(player, PotionGamesX.getInstance().getConfig().getString("pg.bungeeServer", "hub"));
-                }
-                PotionGamesX.getInstance().getGame().clearAllPlayers();
+                plugin.getGame().clearAllPlayers();
                 setCurrentArena(null);
                 clearVoting();
-                clearArenaVotes();
                 clearBlockTracking();
                 clearChests();
                 setState(GameStates.WAITING);
@@ -652,21 +621,44 @@ public class Lobby {
     }
 
     private void checkWinCondition() {
-        int aliveCount = 0;
-        Player lastAlive = null;
+        List<Player> alive = new ArrayList<>();
         for (Player player : activePlayers) {
             if (player != null && player.isOnline() && player.getGameMode() != GameMode.SPECTATOR) {
-                aliveCount++;
-                lastAlive = player;
+                alive.add(player);
             }
         }
-        if (aliveCount <= 1 && lastAlive != null) {
-            announceWinner(lastAlive);
+
+        // Team mode: the round ends when a single team remains
+        if (activateTeams && !lobbyteamplayernames.isEmpty()) {
+            Set<String> aliveTeams = new LinkedHashSet<>();
+            for (Player player : alive) {
+                String team = lobbyteamplayernames.get(player);
+                if (team != null) {
+                    aliveTeams.add(team);
+                }
+            }
+            if (aliveTeams.size() == 1 && !alive.isEmpty()) {
+                announceTeamWin(aliveTeams.iterator().next(), alive);
+                endRound();
+                return;
+            }
+            if (alive.isEmpty()) {
+                announceDraw();
+                endRound();
+                return;
+            }
+            // 1v1 from opposing teams: deathmatch applies here too
+            if (alive.size() == 2 && aliveTeams.size() == 2
+                    && PotionGamesX.getInstance().getConfigManager().isActivateDeathmatch() && !deathmatch) {
+                activateDeathmatch();
+            }
+        } else if (alive.size() == 1) {
+            announceWinner(alive.get(0));
             endRound();
-        } else if (aliveCount <= 1) {
+        } else if (alive.isEmpty()) {
             announceDraw();
             endRound();
-                } else if (aliveCount == 2 && PotionGamesX.getInstance().getConfigManager().isActivateDeathmatch() && !deathmatch) {
+        } else if (alive.size() == 2 && PotionGamesX.getInstance().getConfigManager().isActivateDeathmatch() && !deathmatch) {
             activateDeathmatch();
         }
     }
@@ -695,16 +687,34 @@ public class Lobby {
         }
         for (Player player : activePlayers) {
             if (player != null && player.equals(winner)) {
-                PotionGamesX plugin = PotionGamesX.getInstance();
-                if (plugin.getConfigManager().isEnableRewards()) {
-                    player.sendMessage(Messages.WinReward(plugin.getConfigManager().getWinningReward()));
-                }
-                plugin.getDatabaseManager().addWins(player.getUniqueId().toString(), 1);
+                rewardWin(player);
             } else if (player != null) {
-                PotionGamesX plugin = PotionGamesX.getInstance();
-                plugin.getDatabaseManager().addLosses(player.getUniqueId().toString(), 1);
+                PotionGamesX.getInstance().getDatabaseManager().addLosses(player.getUniqueId().toString(), 1);
             }
         }
+    }
+
+    private void announceTeamWin(String teamId, List<Player> winningTeam) {
+        String teamName = "Team " + teamId;
+        for (Participant participant : participants) {
+            participant.sendMessage(Messages.WinnerHasWonTheGame(teamName));
+        }
+        for (Player player : activePlayers) {
+            if (player == null) continue;
+            if (winningTeam.contains(player)) {
+                rewardWin(player);
+            } else {
+                PotionGamesX.getInstance().getDatabaseManager().addLosses(player.getUniqueId().toString(), 1);
+            }
+        }
+    }
+
+    private void rewardWin(Player player) {
+        PotionGamesX plugin = PotionGamesX.getInstance();
+        if (plugin.getConfigManager().isEnableRewards()) {
+            player.sendMessage(Messages.WinReward(plugin.getConfigManager().getWinningReward()));
+        }
+        plugin.getDatabaseManager().addWins(player.getUniqueId().toString(), 1);
     }
 
     private void announceDraw() {
@@ -714,28 +724,19 @@ public class Lobby {
     }
 
     private void restoreBlocks() {
-        for (Map.Entry<Location, Object> entry : new HashMap<>(placedBlocks).entrySet()) {
-            Location loc = entry.getKey();
-            if (entry.getValue() instanceof Material) {
-                loc.getBlock().setType((Material) entry.getValue());
-            }
+        // Restore broken blocks to their original material
+        for (Map.Entry<Location, Material> entry : breakedBlocks.entrySet()) {
+            entry.getKey().getBlock().setType(entry.getValue());
         }
-        for (Map.Entry<Location, Object> entry : new HashMap<>(breakedBlocks).entrySet()) {
-            Location loc = entry.getKey();
-            if (entry.getValue() instanceof Material) {
-                loc.getBlock().setType((Material) entry.getValue());
-            }
+        // Restore liquids to the block data captured before placement
+        for (Map.Entry<Location, BlockData> entry : liquidBlocks.entrySet()) {
+            entry.getKey().getBlock().setBlockData(entry.getValue());
         }
-        for (Map.Entry<Location, Object> entry : new HashMap<>(waterBlocks).entrySet()) {
-            Location loc = entry.getKey();
-            if (entry.getValue() instanceof org.bukkit.block.data.BlockData) {
-                loc.getBlock().setBlockData((org.bukkit.block.data.BlockData) entry.getValue());
-            }
+        // Remove player-placed blocks
+        for (Location loc : placedBlocks.keySet()) {
+            loc.getBlock().setType(Material.AIR);
         }
-        placedBlocks.clear();
-        breakedBlocks.clear();
-        waterBlocks.clear();
-        liquidPlaced.clear();
+        clearBlockTracking();
     }
 
     public void sendToServer(Player player, String server) {
@@ -751,9 +752,25 @@ public class Lobby {
         }
     }
 
-    public void addPlacedBlock(Location location, Object material) {
+    public void addPlacedBlock(Location location, Material material) {
         if (location != null && material != null) {
             placedBlocks.put(location, material);
+        }
+    }
+
+    public void addBrokenBlock(Location location, Material material) {
+        if (location != null && material != null) {
+            breakedBlocks.put(location, material);
+        }
+    }
+
+    /**
+     * Remember the block data a liquid is about to replace so it can be
+     * restored when the round ends.
+     */
+    public void addLiquidBlock(Location location, BlockData blockData) {
+        if (location != null && blockData != null && !liquidBlocks.containsKey(location)) {
+            liquidBlocks.put(location, blockData);
         }
     }
 
@@ -769,10 +786,6 @@ public class Lobby {
         return this.participants;
     }
 
-    public boolean isEnabled() {
-        return this.enabled;
-    }
-
     public void setState(GameStates newState) {
         if (this.state != newState) {
             GameStates oldState = this.state;
@@ -781,9 +794,15 @@ public class Lobby {
 
             PotionGamesX plugin = PotionGamesX.getInstance();
 
+            // Keep the LobbyStateManager view in sync so listeners observe real state
+            if (plugin != null && plugin.getLobbyStateManager() != null) {
+                plugin.getLobbyStateManager().setGameState(Integer.toString(id), newState);
+            }
+
             // Game just ended (transitioned to RESET) - move players via BungeeCord
-            if (newState == GameStates.RESET && oldState != GameStates.RESET && plugin.getConfigManager().isGameServer()) {
-                PotionGamesX.getInstance().getComponentLogger().info(
+            if (newState == GameStates.RESET && oldState != GameStates.RESET && plugin != null
+                    && plugin.getConfigManager() != null && plugin.getConfigManager().isGameServer()) {
+                plugin.getComponentLogger().info(
                     Settings.prefix
                         .append(Component.text("Game finished. Sending players back to hub...").color(NamedTextColor.YELLOW)));
             }
@@ -816,18 +835,15 @@ public class Lobby {
         return this.playerCount;
     }
 
+    public int getMaxPlayers() {
+        return this.maxPlayers;
+    }
+
     public int getMinPlayers() {
         return this.minPlayers;
     }
 
     // ===== PHASE 7.2: Runtime State Accessors =====
-
-    /**
-     * Get countdown timer
-     */
-    public int getCountdown() {
-        return countdown;
-    }
 
     /**
      * Set countdown timer
@@ -860,7 +876,6 @@ public class Lobby {
     public boolean isDeathmatch() { return deathmatch; }
     public void setDeathmatch(boolean value) { this.deathmatch = value; }
 
-    public boolean isMoveAllowed() { return move; }
 
     public boolean isJoinable() { return joinable; }
     public void setJoinable(boolean value) { this.joinable = value; }
@@ -896,15 +911,18 @@ public class Lobby {
     public void clearBlockTracking() {
         placedBlocks.clear();
         breakedBlocks.clear();
-        waterBlocks.clear();
-        liquidPlaced.clear();
+        liquidBlocks.clear();
     }
 
     // ===== PHASE 7.2: Voting Accessors =====
 
+    /**
+     * Reset all votes for this lobby.
+     */
     public void clearVoting() {
-        lobbyvotes.clear();
-        lobbyvoteplayernames.clear();
+        for (Participant participant : participants) {
+            participant.setVotedArena(null);
+        }
     }
 
     // ===== PHASE 7.2: Team Accessors =====
@@ -916,7 +934,6 @@ public class Lobby {
     public void clearTeams() {
         lobbyteams.clear();
         lobbyteamplayernames.clear();
-        lobbyTeamed.clear();
     }
 
     // ===== PHASE 7.5: Team Operations =====
@@ -974,28 +991,6 @@ public class Lobby {
      */
     public ArrayList<Arena> getArenas() {
         return new ArrayList<>(arenas);
-    }
-
-    /**
-     * Get a random arena from available arenas.
-     *
-     * @return A random arena, or null if no arenas exist
-     */
-    public Arena getRandomArena() {
-        if (arenas.isEmpty()) {
-            return null;
-        }
-        return arenas.get((int)(Math.random() * arenas.size()));
-    }
-
-    /**
-     * Clear all votes for all arenas.
-     * Call this at the start of a voting phase.
-     */
-    public void clearArenaVotes() {
-        for (Arena arena : arenas) {
-            arena.resetVotes();
-        }
     }
 }
 

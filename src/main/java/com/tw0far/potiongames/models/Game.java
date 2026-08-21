@@ -155,20 +155,6 @@ public class Game {
         return players;
     }
 
-    public void addActivePlayer(Player player) {
-        Lobby lobby = getLobbyByPlayer(player);
-        if (lobby != null) {
-            lobby.addActivePlayer(player);
-        }
-    }
-
-    public void addSpectatorPlayer(Player player) {
-        Lobby lobby = getLobbyByPlayer(player);
-        if (lobby != null) {
-            lobby.addSpectatorPlayer(player);
-        }
-    }
-
     public void removeActivePlayer(Player player) {
         Lobby lobby = getLobbyByPlayer(player);
         if (lobby != null) {
@@ -212,17 +198,6 @@ public class Game {
     public void clearAllPlayers() {
         for (Lobby lobby : lobbies) {
             lobby.clearParticipants();
-        }
-    }
-
-    public void setPlayerLobby(Player player, String lobbyId) {
-        for (Lobby lobby : lobbies) {
-            lobby.removeActivePlayer(player);
-            lobby.removeSpectatorPlayer(player);
-        }
-        Lobby lobby = getLobby(Integer.parseInt(lobbyId));
-        if (lobby != null) {
-            lobby.addActivePlayer(player);
         }
     }
 
@@ -285,10 +260,6 @@ public class Game {
         return getSpectatorLobby(player) != null;
     }
 
-    public boolean isInSpecLobby(Player player) {
-        return isSpectatingInLobby(player);
-    }
-
     public ArrayList<Player> getSpectatorsInLobby(String lobbyId) {
         ArrayList<Player> lobbySpecs = new ArrayList<>();
         Lobby lobby = getLobby(Integer.parseInt(lobbyId));
@@ -298,11 +269,10 @@ public class Game {
         return lobbySpecs;
     }
 
+    /**
+     * Clear all shop/loot/kit state.
+     */
     public void clearShopItems() {
-        PotionGamesX.getInstance().getItemStateManager().clearAll();
-    }
-
-    public void clearAllLoot() {
         PotionGamesX.getInstance().getItemStateManager().clearAll();
     }
 }

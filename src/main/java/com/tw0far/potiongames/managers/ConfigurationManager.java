@@ -4,7 +4,7 @@ import com.tw0far.potiongames.PotionGamesX;
 import org.bukkit.configuration.file.FileConfiguration;
 
 public class ConfigurationManager implements IConfigurationManager {
-    private final FileConfiguration config;
+    private final PotionGamesX plugin;
 
     private String language = "en_US";
     private int countdown = 60;
@@ -36,7 +36,7 @@ public class ConfigurationManager implements IConfigurationManager {
     private String user = "root";
 
     public ConfigurationManager(PotionGamesX plugin) {
-        this.config = plugin.getConfig();
+        this.plugin = plugin;
     }
 
     @Override
@@ -48,7 +48,13 @@ public class ConfigurationManager implements IConfigurationManager {
     public void onDisable() {
     }
 
+    @Override
+    public void reload() {
+        loadAllConfig();
+    }
+
     private void loadAllConfig() {
+        FileConfiguration config = plugin.getConfig();
         language = config.getString("pg.language", "en_US");
         countdown = config.getInt("pg.defaults.countdown", 60);
         roundTime = config.getInt("pg.defaults.roundTime", 30);
