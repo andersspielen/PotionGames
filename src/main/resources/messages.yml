@@ -13,8 +13,8 @@ en_US:
       could_not_load: "Could not load an arena!"
       forced: "has been forced as arena!"
       not_arena: "is not an arena!"
-      not_exists: "This arena does not exists!"
-      does_not_exist: "This arena does not exists!"
+      not_exists: "This arena does not exist!"
+      does_not_exist: "This arena does not exist!"
       selector: "Arena-Selector"
       selected: "Arena %s selected!"
     build:
@@ -159,7 +159,7 @@ en_US:
       could_not_spawn: "could not be teleported to a spawn!"
       could_not_teleport: "could not be teleported to the lobby!"
       disabled: "Lobby disabled!"
-      does_not_exist: "This lobby does not exists!"
+      does_not_exist: "This lobby does not exist!"
       enabled: "Lobby enabled!"
       removed: "Lobby %d removed successfully."
       removed_failed: "Failed to remove lobby %d."
@@ -271,8 +271,8 @@ en_US:
     you:
       block_above: "You have a block above you!"
       in_spectator_mode: "in spectator mode"
-      not_empty_bottle: "You not have an empty bottle!"
-      not_enough_coins: "You not have enough Coins!"
+      not_empty_bottle: "You don't have an empty bottle!"
+      not_enough_coins: "You don't have enough coins!"
     died: "died"
 
 de_DE:

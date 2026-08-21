@@ -31,7 +31,7 @@ public class LeaveCommand implements ICommand {
 
     @Override
     public String getPermission() {
-        return null;
+        return "pg.leave";
     }
 
 

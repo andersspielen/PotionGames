@@ -35,7 +35,7 @@ public class Messages {
         addDefault(lang, "arena.could_not_load", "Could not load an arena!");
         addDefault(lang, "arena.forced", "has been forced as arena!");
         addDefault(lang, "arena.not_arena", "is not an arena!");
-        addDefault(lang, "arena.not_exists", "This arena does not exists!");
+        addDefault(lang, "arena.not_exists", "This arena does not exist!");
         addDefault(lang, "arena.selector", "Arena-Selector");
         addDefault(lang, "build.toggle", "Build");
         addDefault(lang, "coin.single", "Coin");
@@ -62,8 +62,8 @@ public class Messages {
         addDefault(lang, "kit.now_have", "You now have the kit");
         addDefault(lang, "kit.selector", "Kit-Selector");
         addDefault(lang, "leave.label", "Leave");
-        addDefault(lang, "lobby.does_not_exist", "This lobby does not exists!");
-        addDefault(lang, "arena.does_not_exist", "This arena does not exists!");
+        addDefault(lang, "lobby.does_not_exist", "This lobby does not exist!");
+        addDefault(lang, "arena.does_not_exist", "This arena does not exist!");
         addDefault(lang, "lobby.full", "This lobby is full!");
         addDefault(lang, "lobby.starting_broadcast", "Lobby %s is starting! Join with /pg join %s");
         addDefault(lang, "lobby.success_set", "Lobby successfully set!");
@@ -121,8 +121,8 @@ public class Messages {
         addDefault(lang, "you.block_above", "You have a block above you!");
         addDefault(lang, "won.reward", "For winning the round you get");
         addDefault(lang, "player.finder_distance", "Blocks away from next player");
-        addDefault(lang, "you.not_empty_bottle", "You not have an empty bottle!");
-        addDefault(lang, "you.not_enough_coins", "You not have enough Coins!");
+        addDefault(lang, "you.not_empty_bottle", "You don't have an empty bottle!");
+        addDefault(lang, "you.not_enough_coins", "You don't have enough coins!");
 
         Settings.messages.options().copyDefaults(true);
         try {
@@ -199,7 +199,7 @@ public class Messages {
     }
 
     public static Component ArenaNotExists() {
-        return prefix(Component.text(get("arena.not_exists", "This arena does not exists!")).color(NamedTextColor.RED));
+        return prefix(Component.text(get("arena.not_exists", "This arena does not exist!")).color(NamedTextColor.RED));
     }
 
     public static Component ArenaSelector() {
@@ -328,7 +328,7 @@ public class Messages {
     }
 
     public static Component LobbyDoesNotExist() {
-        return prefix(Component.text(get("lobby.does_not_exist", "This lobby does not exists!")).color(NamedTextColor.RED));
+        return prefix(Component.text(get("lobby.does_not_exist", "This lobby does not exist!")).color(NamedTextColor.RED));
     }
 
     public static Component LobbyFull() {
@@ -341,7 +341,7 @@ public class Messages {
     }
 
     public static Component ArenaDoesNotExist() {
-        return prefix(Component.text(get("arena.does_not_exist", "This arena does not exists!")).color(NamedTextColor.RED));
+        return prefix(Component.text(get("arena.does_not_exist", "This arena does not exist!")).color(NamedTextColor.RED));
     }
 
     public static Component LobbySuccessSet() {
@@ -614,11 +614,11 @@ public class Messages {
     }
 
     public static Component YouNotEmptyBottle() {
-        return prefix(Component.text(get("you.not_empty_bottle", "You not have an empty bottle!")).color(NamedTextColor.RED));
+        return prefix(Component.text(get("you.not_empty_bottle", "You don't have an empty bottle!")).color(NamedTextColor.RED));
     }
 
     public static Component YouNotEnoughCoins() {
-        return prefix(Component.text(get("you.not_enough_coins", "You not have enough Coins!")).color(NamedTextColor.RED));
+        return prefix(Component.text(get("you.not_enough_coins", "You don't have enough coins!")).color(NamedTextColor.RED));
     }
 
     public static String BucketWaterNotAllowedText() { return get("bucket.water_not_allowed", "Water buckets are not allowed during games!"); }

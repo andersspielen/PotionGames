@@ -239,7 +239,7 @@ public class GameInventoryListener implements Listener {
             int randomKitIndex = new Random().nextInt(activeKits) + 1;
             String kitName = Settings.kitdata.getString("pg.kits." + randomKitIndex + ".name");
             if (kitName != null) {
-                participant.setKit(new Kit(randomKitIndex, kitName));
+                participant.setKit(new Kit(kitName));
                 p.closeInventory();
                 p.sendMessage(Messages.KitNowHave(kitName));
             }
@@ -247,7 +247,7 @@ public class GameInventoryListener implements Listener {
             for (int i = 1; i <= activeKits; i++) {
                 String kitName = Settings.kitdata.getString("pg.kits." + i + ".name");
                 if (kitName != null && kitName.equals(displayname)) {
-                    participant.setKit(new Kit(i, kitName));
+                    participant.setKit(new Kit(kitName));
                     p.closeInventory();
                     p.sendMessage(Messages.KitNowHave(kitName));
                     break;

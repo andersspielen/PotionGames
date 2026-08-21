@@ -61,7 +61,7 @@ public class Lobby {
     private int gameTimer = roundTime * 60;
     private int[] announceRoundTimes = new int[] { 0, 1, 2, 3, 4, 5, 10, 30, 60, 60 * 5, 60 * 10, 60 * 30 };
 
-    // ===== PHASE 7.2: Runtime State (Countdown, Flags, etc.) =====
+    // =====
     // Countdown timers
     private int countdown = 60;
     private int reset = 10;
@@ -81,7 +81,7 @@ public class Lobby {
 
     // Per-lobby block tracking (for restoring the arena at RESET)
     private HashMap<Location, Material> placedBlocks = new HashMap<>();
-    private HashMap<Location, Material> breakedBlocks = new HashMap<>();
+    private HashMap<Location, Material> brokenBlocks = new HashMap<>();
     private HashMap<Location, BlockData> liquidBlocks = new HashMap<>();
 
     // Per-lobby voting
@@ -844,7 +844,7 @@ public class Lobby {
 
     private void restoreBlocks() {
         // Restore broken blocks to their original material
-        for (Map.Entry<Location, Material> entry : breakedBlocks.entrySet()) {
+        for (Map.Entry<Location, Material> entry : brokenBlocks.entrySet()) {
             entry.getKey().getBlock().setType(entry.getValue());
         }
         // Restore liquids to the block data captured before placement
@@ -879,7 +879,7 @@ public class Lobby {
 
     public void addBrokenBlock(Location location, Material material) {
         if (location != null && material != null) {
-            breakedBlocks.put(location, material);
+            brokenBlocks.put(location, material);
         }
     }
 
@@ -962,7 +962,7 @@ public class Lobby {
         return this.minPlayers;
     }
 
-    // ===== PHASE 7.2: Runtime State Accessors =====
+    // =====
 
     /**
      * Set countdown timer
@@ -990,7 +990,7 @@ public class Lobby {
 
 
 
-    // ===== PHASE 7.2: Boolean Flags =====
+    // =====
 
     public boolean isDeathmatch() { return deathmatch; }
     public void setDeathmatch(boolean value) { this.deathmatch = value; }
@@ -1002,7 +1002,7 @@ public class Lobby {
     public boolean isPaused() { return pause; }
     public void setPaused(boolean value) { this.pause = value; }
 
-    // ===== PHASE 7.2: Chest Accessors =====
+    // =====
 
     public void setChestInventory(Location loc, ItemStack[] items) {
         chests.put(loc, items);
@@ -1029,11 +1029,11 @@ public class Lobby {
 
     public void clearBlockTracking() {
         placedBlocks.clear();
-        breakedBlocks.clear();
+        brokenBlocks.clear();
         liquidBlocks.clear();
     }
 
-    // ===== PHASE 7.2: Voting Accessors =====
+    // =====
 
     /**
      * Reset all votes for this lobby.
@@ -1042,7 +1042,7 @@ public class Lobby {
         PotionGamesX.getInstance().getArenaStateManager().resetLobbyVotes(Integer.toString(id));
     }
 
-    // ===== PHASE 7.2: Team Accessors =====
+    // =====
 
     public HashMap<Player, String> getTeamPlayerNamesMap() {
         return lobbyteamplayernames;
@@ -1053,7 +1053,7 @@ public class Lobby {
         lobbyteamplayernames.clear();
     }
 
-    // ===== PHASE 7.5: Team Operations =====
+    // =====
 
     /**
      * Get player's team ID
@@ -1099,7 +1099,7 @@ public class Lobby {
         }
     }
 
-    // ===== PHASE 8.6: Arena Accessors =====
+    // =====
 
     /**
      * Get all arenas in this lobby.
