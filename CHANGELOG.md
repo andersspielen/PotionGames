@@ -40,6 +40,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `/pg stats <player>` looks up the target correctly (was parsing "stats")
 - `/pg pause` actually pauses the tick loop again
 - Status screen shows real game states and live database connectivity
+- `/pg top` and the stats signs/emerald readout no longer block the main thread while querying the database
+- Player records are created asynchronously on join instead of during the join event
 
 ### Changed
 
@@ -51,6 +53,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `InventoryEventListener` split into `GameInventoryListener`, `GameItemListener` and `SetupInteractionListener`
 - Six clone commands (headp1-3/signp1-3) consolidated into one parameterized `StatsWallCommand`
 - Setup-mode chat input no longer swallows normal chat while no input mode is active
+- Votes have a single source of truth (`ArenaStateManager` via `Lobby#recordVote`); the duplicate vote record on participants was removed
+- Removed redundant spectator fallbacks in `/pg join|force|start|pause|build` (`getPlayerLobby` already covers spectators)
 
 ### Removed
 
