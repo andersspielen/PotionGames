@@ -38,7 +38,7 @@ mvn test             # JUnit 5 unit tests (src/test/java) - no Bukkit server nee
   Seeds its keys into `messages.yml` on startup; falls back to `en_US`.
 - **Settings.java** - static file handles (`lobbies`, `chests`, `kitdata`, `messages`, `shopdata`)
   and global defaults loaded from config.yml.
-- Kit / GameStates / PlayerState / ParticipantType - small support types.
+- Kit / GameStates / PlayerState - small support types.
 
 ### managers/ - interfaces + implementations
 
