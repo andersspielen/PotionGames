@@ -55,6 +55,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Setup-mode chat input no longer swallows normal chat while no input mode is active
 - Votes have a single source of truth (`ArenaStateManager` via `Lobby#recordVote`); the duplicate vote record on participants was removed
 - Removed redundant spectator fallbacks in `/pg join|force|start|pause|build` (`getPlayerLobby` already covers spectators)
+- Permission nodes now match their command names: `/pg version` requires `pg.version` (replaces `pg.update`, which also gated update notifications) and `/pg reload` requires `pg.reload` (previously shared `pg.setup`)
+- `/pg leave` is now actually gated by `pg.leave` (the node existed in plugin.yml but was never checked)
+- Corrected grammar in several player-facing messages ("does not exists", "You not have …")
 
 ### Removed
 
@@ -66,6 +69,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ConfigKeys.java` (36/37 dead enum values inlined)
 - Dead config knobs that had no code reader: `logging.*`, `performance.*`, `security.*`, `activePotions`
 - `BlockStateManager` / `PlayerStateManager` (duplicated state owned by `Lobby`/`Game`; tracking now lives where it is used)
+- Unused ParticipantType enum and Kit id field
 - ~45 dead message methods and their orphaned translation keys
 - 5 no-op listener classes (consume/food/respawn/teleport/explosion)
 - Never-functional move-freeze flag (cost a lobby lookup on every move event)
