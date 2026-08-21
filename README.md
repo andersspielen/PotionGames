@@ -31,7 +31,7 @@ PotionGamesX is a minigames plugin that works like SurvivalGames but with potion
 ## Requirements
 
 - **Java 25+**
-- **Paper 26.1.x**
+- **Paper 26.2**
 - **Maven 3.8+** (for building)
 - **Multiverse-Core** (soft dependency)
 - **Vault** (optional, for economy rewards)
