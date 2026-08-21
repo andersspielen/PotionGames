@@ -536,20 +536,27 @@ public class GameItemListener implements Listener {
 
     private void sendStats(Player p) {
         String uuid = p.getUniqueId().toString();
-        int wins = plugin.getDatabaseManager().getWins(uuid);
-        int losses = plugin.getDatabaseManager().getLosses(uuid);
-        int rounds = plugin.getDatabaseManager().getRounds(uuid);
-        int kills = plugin.getDatabaseManager().getKills(uuid);
-        int deaths = plugin.getDatabaseManager().getDeaths(uuid);
-        double kd = plugin.getDatabaseManager().getKD(uuid);
-        p.sendMessage(Messages.StatsLabel());
-        p.sendMessage(Messages.RoundsLabel(rounds));
-        p.sendMessage(Messages.WinsLabel(wins));
-        p.sendMessage(Messages.LossesLabel(losses));
-        p.sendMessage(Messages.KillsLabel(kills));
-        p.sendMessage(Messages.DeathsLabel(deaths));
-        p.sendMessage(Messages.KDLabel(kd));
-        p.sendMessage(Messages.StatsLabel());
+        // DB reads run async; the message is delivered on the player's thread
+        org.bukkit.Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+            int wins = plugin.getDatabaseManager().getWins(uuid);
+            int losses = plugin.getDatabaseManager().getLosses(uuid);
+            int rounds = plugin.getDatabaseManager().getRounds(uuid);
+            int kills = plugin.getDatabaseManager().getKills(uuid);
+            int deaths = plugin.getDatabaseManager().getDeaths(uuid);
+            double kd = plugin.getDatabaseManager().getKD(uuid);
+
+            List<Component> lines = new ArrayList<>();
+            lines.add(Messages.StatsLabel());
+            lines.add(Messages.RoundsLabel(rounds));
+            lines.add(Messages.WinsLabel(wins));
+            lines.add(Messages.LossesLabel(losses));
+            lines.add(Messages.KillsLabel(kills));
+            lines.add(Messages.DeathsLabel(deaths));
+            lines.add(Messages.KDLabel(kd));
+            lines.add(Messages.StatsLabel());
+
+            p.getScheduler().execute(plugin, () -> lines.forEach(p::sendMessage), () -> { }, 1L);
+        });
     }
 
     // ===== Loot filling =====

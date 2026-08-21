@@ -45,7 +45,7 @@ public class JoinCommand implements ICommand {
                 int lobbyId = Integer.parseInt(args[1]);
                 if (Settings.lobbies.contains("pg.lobbies." + lobbyId)) {
                     if (plugin.getGame().getLobbies().size() > 0) {
-                        if (plugin.getGame().getPlayerLobby(player) != null || plugin.getGame().getSpectatorLobby(player) != null) {
+                        if (plugin.getGame().getPlayerLobby(player) != null) {
                             player.sendMessage(Messages.JoinAlreadyInLobby());
                             return true;
                         }

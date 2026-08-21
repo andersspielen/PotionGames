@@ -34,10 +34,7 @@ public class BuildCommand implements ICommand {
             return true;
         }
         // Multi-lobby mode: get player's lobby and toggle build mode for that lobby
-        String lobbyId = plugin.getGame().getPlayerLobby(player);
-        if (lobbyId == null) {
-            lobbyId = plugin.getGame().getSpectatorLobby(player);
-        }
+        String lobbyId = plugin.getGame().getPlayerLobby(player); // active or spectator
 
         if (lobbyId != null) {
             // Toggle build mode

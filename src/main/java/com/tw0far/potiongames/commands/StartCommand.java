@@ -38,10 +38,7 @@ public class StartCommand implements ICommand {
             return true;
         }
         // Multi-lobby mode
-        String lobbyId = plugin.getGame().getPlayerLobby(player);
-        if (lobbyId == null) {
-            lobbyId = plugin.getGame().getSpectatorLobby(player);
-        }
+        String lobbyId = plugin.getGame().getPlayerLobby(player); // active or spectator
 
         if (lobbyId != null) {
             try {

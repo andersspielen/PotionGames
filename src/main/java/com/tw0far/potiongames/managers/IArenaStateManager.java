@@ -17,6 +17,9 @@ public interface IArenaStateManager extends IManager {
     String getPlayerVoteInLobby(String lobbyId, Player player);
     boolean hasPlayerVotedInLobby(String lobbyId, Player player);
 
+    /** Clear votes (counts and per-player records) for one lobby. */
+    void resetLobbyVotes(String lobbyId);
+
     void clearAllLobbyVotes();
 
     // ===== LOBBY TEAM MANAGEMENT =====

@@ -442,16 +442,11 @@ public class Lobby {
         if (arenas.isEmpty()) {
             return null;
         }
+        var asm = PotionGamesX.getInstance().getArenaStateManager();
         Arena topArena = arenas.get((int)(Math.random() * arenas.size()));
         int topVotes = 0;
         for (Arena arena : arenas) {
-            int votes = 0;
-            for (Participant participant : participants) {
-                Arena votedArena = participant.getVotedArena();
-                if (votedArena != null && votedArena.equals(arena)) {
-                    votes++;
-                }
-            }
+            int votes = asm.getLobbyVoteCount(Integer.toString(id), arena.getName());
             if (votes > topVotes) {
                 topArena = arena;
                 topVotes = votes;
@@ -481,16 +476,25 @@ public class Lobby {
         }
     }
 
+    /**
+     * Record (or switch) a player's arena vote. The ArenaStateManager is the
+     * single source of truth for vote counts and per-player votes.
+     */
     public void recordVote(Player player, String arenaName) {
         if (player == null || arenaName == null || arenaName.isBlank()) {
             return;
         }
 
-        Participant participant = getParticipant(player);
-        Arena arena = getArena(arenaName);
-        if (participant != null) {
-            participant.setVotedArena(arena);
+        var asm = PotionGamesX.getInstance().getArenaStateManager();
+        String lobbyId = Integer.toString(id);
+
+        // Switching: remove the previous vote first
+        String previousVote = asm.getPlayerVoteInLobby(lobbyId, player);
+        if (previousVote != null) {
+            asm.removeLobbyVote(lobbyId, previousVote);
         }
+        asm.addLobbyVote(lobbyId, arenaName);
+        asm.recordPlayerVoteInLobby(lobbyId, player, arenaName);
     }
 
     public void recordTeamAssignment(Player player, String teamName) {
@@ -1036,9 +1040,7 @@ public class Lobby {
      * Reset all votes for this lobby.
      */
     public void clearVoting() {
-        for (Participant participant : participants) {
-            participant.setVotedArena(null);
-        }
+        PotionGamesX.getInstance().getArenaStateManager().resetLobbyVotes(Integer.toString(id));
     }
 
     // ===== PHASE 7.2: Team Accessors =====

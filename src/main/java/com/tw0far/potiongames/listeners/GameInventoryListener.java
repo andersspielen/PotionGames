@@ -62,18 +62,10 @@ public class GameInventoryListener implements Listener {
             return;
         }
 
-        // Switching vote - remove old vote first
-        if (plugin.getArenaStateManager().hasPlayerVotedInLobby(s, p)) {
-            String previousVote = plugin.getArenaStateManager().getPlayerVoteInLobby(s, p);
-            if (previousVote != null) {
-                plugin.getArenaStateManager().removeLobbyVote(s, previousVote);
-            }
-        }
         p.closeInventory();
-        plugin.getArenaStateManager().addLobbyVote(s, displayname);
-        plugin.getArenaStateManager().recordPlayerVoteInLobby(s, p, displayname);
         Lobby lobby = plugin.getGame().getLobby(InteractionSupport.parseIntSafe(s));
         if (lobby != null) {
+            // Single source of truth for votes: the ArenaStateManager via Lobby#recordVote
             lobby.recordVote(p, displayname);
         }
 

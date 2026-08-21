@@ -212,6 +212,10 @@ public class Game {
         }
     }
 
+    /**
+     * Returns the ID of the lobby the player belongs to, as an active player
+     * or as a spectator. Returns null when the player is not part of any lobby.
+     */
     public String getPlayerLobby(Player player) {
         for (Lobby lobby : lobbies) {
             if (lobby.isActivePlayer(player) || lobby.isSpectatorPlayer(player)) {

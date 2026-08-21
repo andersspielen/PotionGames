@@ -25,7 +25,9 @@ public class PlayerEventListener implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {
         Player p = e.getPlayer();
-        plugin.getDatabaseManager().createPlayer(p.getUniqueId().toString());
+        // DB write runs off the join thread
+        org.bukkit.Bukkit.getAsyncScheduler().runNow(plugin, task ->
+            plugin.getDatabaseManager().createPlayer(p.getUniqueId().toString()));
         if (p.hasPermission("pg.update")) {
             new UpdateChecker(plugin, 87633).getVersion(version -> {
                 if (version != null && !plugin.getPluginMeta().getVersion().equalsIgnoreCase(version)) {

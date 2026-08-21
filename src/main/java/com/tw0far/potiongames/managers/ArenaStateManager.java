@@ -81,6 +81,12 @@ public class ArenaStateManager implements IArenaStateManager {
         lobbyvoteplayernames.clear();
     }
 
+    @Override
+    public void resetLobbyVotes(String lobbyId) {
+        lobbyvotes.remove(lobbyId);
+        lobbyvoteplayernames.remove(lobbyId);
+    }
+
     // ===== LOBBY TEAM MANAGEMENT =====
     @Override
     public Integer getLobbyTeamPlayerCount(String lobbyId, Integer teamId) {
