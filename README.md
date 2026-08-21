@@ -79,8 +79,8 @@ PotionGamesX is a minigames plugin that works like SurvivalGames but with potion
 | `/pg top` | Show leaderboards | `pg.top` |
 | `/pg gameserver` | Toggle game/hub mode | `pg.gameserver` |
 | `/pg database` | Switch MySQL/SQLite | `pg.database` |
-| `/pg reload` | Reload config files | `pg.setup` |
-| `/pg version` | Show plugin version | `pg.update` |
+| `/pg reload` | Reload config files | `pg.reload` |
+| `/pg version` | Show plugin version | `pg.version` |
 
 Most admin commands can also be run from the server console (`reload`, `status`, `top`, `broadcast`, `version`, `database`, `gameserver`, `config`, `help`, `kick`).
 

@@ -23,11 +23,14 @@ permissions:
   pg.stats:
     description: View player statistics
     default: true
-  pg.update:
-    description: Check for plugin updates
+  pg.version:
+    description: Show plugin version and receive update notifications
     default: op
   pg.setup:
     description: Set up lobbies, arenas and spawns
+    default: op
+  pg.reload:
+    description: Reload the plugin configuration
     default: op
   pg.build:
     description: Toggle build mode in a lobby

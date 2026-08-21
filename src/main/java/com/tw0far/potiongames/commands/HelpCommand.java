@@ -45,6 +45,9 @@ public class HelpCommand implements ICommand {
             player.sendMessage(Settings.prefix.append(Component.text(Messages.HelpHeadText()).color(NamedTextColor.GRAY)));
             player.sendMessage(Settings.prefix.append(Component.text(Messages.HelpSignText()).color(NamedTextColor.GRAY)));
             player.sendMessage(Settings.prefix.append(Component.text(Messages.HelpJoinsignText()).color(NamedTextColor.GRAY)));
+        }
+
+        if (player.hasPermission("pg.reload")) {
             player.sendMessage(Settings.prefix.append(Component.text(Messages.HelpReloadText()).color(NamedTextColor.GRAY)));
         }
 
@@ -79,7 +82,7 @@ public class HelpCommand implements ICommand {
             player.sendMessage(Settings.prefix.append(Component.text(Messages.HelpStatsText()).color(NamedTextColor.GRAY)));
         }
 
-        if (player.hasPermission("pg.update")) {
+        if (player.hasPermission("pg.version")) {
             player.sendMessage(Settings.prefix.append(Component.text(Messages.HelpVersionText()).color(NamedTextColor.GRAY)));
         }
 

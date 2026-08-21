@@ -22,7 +22,7 @@ public class VersionCommand implements ICommand {
 
     @Override
     public String getPermission() {
-        return "pg.update";
+        return "pg.version";
     }
 
 

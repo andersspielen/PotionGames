@@ -689,7 +689,7 @@ public class Messages {
     public static String HelpStatusText() { return get("help.status", "/pg status - Show server status and active lobbies"); }
     public static String HelpTopText() { return get("help.top", "/pg top [type] - Show leaderboard (kills/deaths/wins/kd)"); }
     public static String HelpVersionText() { return get("help.version", "/pg version - Show your and latest version of plugin"); }
-    public static String HelpVersionUsageText() { return get("help.version_usage", "/pg version - Check plugin version and updates (requires pg.update)"); }
+    public static String HelpVersionUsageText() { return get("help.version_usage", "/pg version - Check plugin version and updates (requires pg.version)"); }
     public static String HeadLookBlockText(int place) {
         return get("head.look_block_" + place, "Look at a block to set the " + place + (place == 1 ? "st" : place == 2 ? "nd" : "rd") + " place head.");
     }
