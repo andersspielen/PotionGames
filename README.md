@@ -1,6 +1,6 @@
 # PotionGamesX
 
-> A Minecraft minigames plugin for Paper 26.1.x servers!
+> A Minecraft minigames plugin for Paper servers!
 
 [![CI Build](https://github.com/lennartabeln/PotionGamesX/actions/workflows/ci.yml/badge.svg)](https://github.com/lennartabeln/PotionGamesX/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/lennartabeln/PotionGamesX/actions/workflows/codeql.yml/badge.svg)](https://github.com/lennartabeln/PotionGamesX/actions/workflows/codeql.yml)
@@ -31,7 +31,7 @@ PotionGamesX is a minigames plugin that works like SurvivalGames but with potion
 ## Requirements
 
 - **Java 25+**
-- **Paper 26.1.x**
+- **Paper 26.2**
 - **Maven 3.8+** (for building)
 - **Multiverse-Core** (soft dependency)
 - **Vault** (optional, for economy rewards)

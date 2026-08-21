@@ -1,6 +1,6 @@
 # PotionGamesX - Official Documentation
 
-> A modern Minecraft minigames plugin for Paper 26.1.x servers with potions, loot, and team-based gameplay.
+> A modern Minecraft minigames plugin for Paper servers with potions, loot, and team-based gameplay.
 
 ## 📋 Documentation Index
 
