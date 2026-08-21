@@ -11,7 +11,7 @@
 
 ### Build
 ```bash
-mvn -DskipTests clean package
+mvn clean package        # add -DskipTests to skip unit tests
 ```
 
 ### Deploy
@@ -23,12 +23,13 @@ mvn -DskipTests clean package
 ## 📦 What's Included
 
 ### Core Features
-- ✅ Multi-lobby minigames system (up to 27 lobbies)
+- ✅ Multi-lobby minigames system (unlimited lobbies)
 - ✅ Customizable loot chests with probability-weighted pools
-- ✅ Team-based gameplay with custom team sizes
-- ✅ Potion shop system with 27+ potions
-- ✅ Player kits with 26+ configurations
+- ✅ Team-based gameplay with custom team sizes and team-aware win conditions
+- ✅ Potion shop system with kit sale prices
+- ✅ Player kits
 - ✅ Deathmatch mode for final battles
+- ✅ Spectator mode for eliminated players and late joiners (`joinStarted`)
 - ✅ Player statistics (SQLite/MySQL)
 - ✅ Top 3 player display wall
 
@@ -68,17 +69,15 @@ All config files in `plugins/PotionGamesX/`:
 | Metric | Status |
 |--------|--------|
 | Java | 25+ required |
-| Paper | 26.1.x required |
-| Code Warnings | ✅ 0 |
-| Code Errors | ✅ 0 |
-| JAR Size | 0.22 MB |
-| Build Time | ~6s |
+| Paper | 26.2+ required |
+| Tests | ✅ JUnit 5 unit tests (`mvn test`) |
+| JAR Size | ~0.25 MB |
 
 ## 🔗 Requirements
 
 - **Java 25+**
 - **Maven 3.8+**
-- **Paper 26.1.x**
+- **Paper 26.2**
 - **VaultAPI 1.7.1** (optional, for economy)
 - **Multiverse-Core** (soft dependency)
 

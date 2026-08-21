@@ -15,10 +15,10 @@ PotionGamesX is a minigames plugin that works like SurvivalGames but with potion
 * Custom chest types (Normal, Target, Netherite, Composter)
 * Airdrops (activate with redstone torch)
 * Loot coins and glass bottles to use in the shop
-* 27 potions in the shop
-* 26 kits with sale prices for potions
-* 27 lobbies with 26 arenas for voting each round
-* Teams with custom team sizes
+* Potion shop with kit-specific sale prices
+* Multiple lobbies with arena voting each round
+* Teams with custom team sizes — last team standing wins
+* Spectators: eliminated players (and late joiners via `joinStarted`) watch the round
 * Deathmatch mode for final battles
 * Player statistics (SQLite or MySQL)
 * Top 3 stats wall display
@@ -62,7 +62,7 @@ PotionGamesX is a minigames plugin that works like SurvivalGames but with potion
 | `/pg list` | Open lobby GUI | `pg.join` |
 | `/pg start` | Start countdown | `pg.start` |
 | `/pg build` | Toggle build mode | `pg.build` |
-| `/pg pause` | Pause countdown | `pg.pause` |
+| `/pg pause` | Pause/resume the game timer | `pg.pause` |
 | `/pg force <arena>` | Force an arena | `pg.force` |
 | `/pg stats [player]` | Show player stats | `pg.stats` |
 
@@ -71,16 +71,18 @@ PotionGamesX is a minigames plugin that works like SurvivalGames but with potion
 | Command | Description | Permission |
 |---------|-------------|------------|
 | `/pg setup` | Interactive setup wizard | `pg.setup` |
-| `/pg config` | View current configuration | `pg.setup` |
-| `/pg status` | Show server status and lobbies | `pg.setup` |
-| `/pg debug` | Toggle debug logging | `pg.setup` |
-| `/pg broadcast` | Send server announcement | `pg.setup` |
-| `/pg kick <player>` | Remove player from lobby | `pg.setup` |
-| `/pg top` | Show leaderboards | `pg.setup` |
-| `/pg gameserver` | Toggle game/hub mode | `pg.setup` |
-| `/pg database` | Switch MySQL/SQLite | `pg.setup` |
+| `/pg config` | View current configuration | `pg.config` |
+| `/pg status` | Show server status and lobbies | `pg.status` |
+| `/pg debug` | Toggle debug logging | `pg.debug` |
+| `/pg broadcast` | Send server announcement | `pg.broadcast` |
+| `/pg kick <player>` | Remove player from lobby | `pg.kick` |
+| `/pg top` | Show leaderboards | `pg.top` |
+| `/pg gameserver` | Toggle game/hub mode | `pg.gameserver` |
+| `/pg database` | Switch MySQL/SQLite | `pg.database` |
 | `/pg reload` | Reload config files | `pg.setup` |
-| `/pg version` | Show plugin version | `pg.setup` |
+| `/pg version` | Show plugin version | `pg.update` |
+
+Most admin commands can also be run from the server console (`reload`, `status`, `top`, `broadcast`, `version`, `database`, `gameserver`, `config`, `help`, `kick`).
 
 ### Advanced Setup Commands
 
@@ -137,17 +139,24 @@ Settings use a lobby-first model:
 - `pg.lobbies.<id>.settings.*` stores per-lobby overrides
 - Falls back to defaults if per-lobby setting is missing
 
+Notable global toggles (`config.yml`):
+| Setting | Effect |
+|---------|--------|
+| `joinStarted` | Late joiners spectate a running round instead of being rejected |
+| `broadcastStarting` | Broadcast a server-wide message when a lobby countdown starts |
+| `compassOnSpawn` | Give everyone the player-finder compass at round start |
+| `changeGamerules` | Freeze daylight/weather in the arena world during rounds |
+| `allowOutsideChat` | Players outside lobbies can see lobby chat |
+
 ## Release History
 
 ### v1.0 — PotionGamesX (Rework)
 Complete rework of the original PotionGames, now rebuilt as PotionGamesX.
 * Full class-based OOP refactor with manager delegation
-* 8+ manager classes for state management
-* Separated event listeners and command classes
-* Configuration-driven design (logging, performance, security sections)
+* Manager classes and separated event listeners / command classes
+* Configuration-driven design
 * Consolidated config structure (config.yml, chests.yml, kits.yml, messages.yml, shop.yml)
 * GitHub CI/CD pipeline (build, test, CodeQL, automated releases)
-* 0 code warnings, production-ready
 
 ### Original PotionGames
 Previous versions of the original PotionGames plugin before the rework:
