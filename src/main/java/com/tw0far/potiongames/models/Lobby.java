@@ -85,8 +85,7 @@ public class Lobby {
     private HashMap<Location, BlockData> liquidBlocks = new HashMap<>();
 
     // Per-lobby voting
-    // Votes are tracked per participant (see Participant#getVotedArena); the
-    // authoritative display counts live in ArenaStateManager.
+    // Single source of truth for votes: ArenaStateManager (see recordVote/clearVoting).
 
     // Per-lobby teams
     private HashMap<Integer, Integer> lobbyteams = new HashMap<>();               // team id -> player count
