@@ -3,7 +3,7 @@ package com.tw0far.potiongames.commands;
 import com.tw0far.potiongames.PotionGamesX;
 import com.tw0far.potiongames.models.Messages;
 import com.tw0far.potiongames.util.UpdateChecker;
-import org.bukkit.entity.Player;
+import org.bukkit.command.CommandSender;
 
 /**
  * /pg version - Show version info and check for updates
@@ -27,7 +27,7 @@ public class VersionCommand implements ICommand {
 
 
     @Override
-    public boolean execute(Player player, String[] args) {
+    public boolean execute(CommandSender player, String[] args) {
         new UpdateChecker(plugin, 87633).getVersion(version -> {
             if (version == null) {
                 player.sendMessage(Messages.UpdateCheckerError());

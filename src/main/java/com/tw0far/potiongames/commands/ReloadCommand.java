@@ -3,7 +3,7 @@ package com.tw0far.potiongames.commands;
 import com.tw0far.potiongames.handlers.ReloadHandler;
 import com.tw0far.potiongames.PotionGamesX;
 import com.tw0far.potiongames.models.Messages;
-import org.bukkit.entity.Player;
+import org.bukkit.command.CommandSender;
 
 /**
  * /pg reload - Reload all configurations
@@ -31,7 +31,7 @@ public class ReloadCommand implements ICommand {
 
 
     @Override
-    public boolean execute(Player player, String[] args) {
+    public boolean execute(CommandSender player, String[] args) {
         try {
             player.sendMessage(CommandDispatcher.createInfo("Starting plugin reload... this may take a moment."));
 

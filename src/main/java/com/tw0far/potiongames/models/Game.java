@@ -70,9 +70,20 @@ public class Game {
         if (getPlayerLobby(player) != null || getSpectatorLobby(player) != null) {
             return false;
         }
-        Lobby lobby = lobbies.get(0);
-        lobby.addActivePlayer(player);
-        return true;
+        boolean joinStarted = PotionGamesX.getInstance().getConfigManager().isJoinStarted();
+
+        // Prefer an open lobby; fall back to spectating a running round
+        for (Lobby lobby : lobbies) {
+            if (lobby.canJoin()) {
+                lobby.addActivePlayer(player);
+                return true;
+            }
+            if (joinStarted && lobby.canSpectate()) {
+                lobby.joinAsSpectator(player);
+                return true;
+            }
+        }
+        return false;
     }
 
     public void unregisterPlayer(Player player) {

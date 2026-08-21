@@ -78,27 +78,5 @@ pg:
 
   # Content limits
   activeKits: 6                # Number of player kits
-  activePotions: 19            # Number of shop potions
 
   # ═══════════════════════════════════════════════════════
-  # PERFORMANCE & LOGGING
-  # ═══════════════════════════════════════════════════════
-
-  logging:
-    level: INFO                 # Log level: INFO, DEBUG, TRACE
-    toFile: false               # Save logs to file
-    filePath: "logs/potiongames.log"
-
-  performance:
-    lobbyUpdateRate: 2          # Ticks between lobby updates (20 = 1 sec)
-    maxConcurrentGames: 10      # Maximum simultaneous games
-    scoreboardUpdateRate: 5     # Ticks between scoreboard updates
-
-  # ═══════════════════════════════════════════════════════
-  # SECURITY & RESTRICTIONS
-  # ═══════════════════════════════════════════════════════
-
-  security:
-    antiCheatEnabled: false     # Auto-kick suspicious patterns
-    bannedItems: ""             # Comma-separated banned items
-    maxPlayersPerIP: 0          # 0 = unlimited

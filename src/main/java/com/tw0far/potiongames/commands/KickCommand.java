@@ -3,6 +3,7 @@ package com.tw0far.potiongames.commands;
 import com.tw0far.potiongames.PotionGamesX;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 /**
@@ -28,7 +29,7 @@ public class KickCommand implements ICommand {
 
 
     @Override
-    public boolean execute(Player player, String[] args) {
+    public boolean execute(CommandSender player, String[] args) {
         if (args.length < 2) {
             player.sendMessage(Component.text("Usage: /pg kick <player>").color(NamedTextColor.RED));
             return true;

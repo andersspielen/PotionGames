@@ -13,3 +13,61 @@ commands:
       - potiongames
       - pgames
       - potiong
+permissions:
+  pg.join:
+    description: Join lobbies and view the lobby list
+    default: true
+  pg.leave:
+    description: Leave the current game
+    default: true
+  pg.stats:
+    description: View player statistics
+    default: true
+  pg.update:
+    description: Check for plugin updates
+    default: op
+  pg.setup:
+    description: Set up lobbies, arenas and spawns
+    default: op
+  pg.build:
+    description: Toggle build mode in a lobby
+    default: op
+  pg.pause:
+    description: Pause or resume a game
+    default: op
+  pg.force:
+    description: Force a specific arena
+    default: op
+  pg.start:
+    description: Shorten the lobby countdown
+    default: op
+  pg.sign:
+    description: Create [PG] join signs
+    default: op
+  pg.kick:
+    description: Kick players from lobbies
+    default: op
+  pg.broadcast:
+    description: Broadcast messages to all players
+    default: op
+  pg.top:
+    description: View leaderboards
+    default: op
+  pg.status:
+    description: View server and lobby status
+    default: op
+  pg.config:
+    description: View current configuration
+    default: op
+  pg.reload:
+    description: Reload the plugin configuration
+    default: op
+  pg.debug:
+    description: Toggle debug mode
+    default: op
+  pg.database:
+    description: Toggle database backend (MySQL/SQLite)
+    default: op
+  pg.gameserver:
+    description: Toggle game-server mode
+    default: op

@@ -5,7 +5,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.entity.Player;
+import org.bukkit.command.CommandSender;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -36,7 +36,7 @@ public class TopCommand implements ICommand {
 
 
     @Override
-    public boolean execute(Player player, String[] args) {
+    public boolean execute(CommandSender player, String[] args) {
         if (!plugin.getDatabaseManager().isConnected()) {
             player.sendMessage(Component.text("Statistics database is not connected.").color(NamedTextColor.RED));
             return true;

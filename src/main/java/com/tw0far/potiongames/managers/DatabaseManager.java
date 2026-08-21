@@ -125,6 +125,9 @@ public class DatabaseManager implements IDatabaseManager {
         if (!connected || connection == null) return null;
         try {
             PreparedStatement stmt = connection.prepareStatement(sql);
+            // Close the statement automatically when its ResultSet is closed,
+            // so callers using try-with-resources on the ResultSet don't leak cursors.
+            stmt.closeOnCompletion();
             setParameters(stmt, params);
             return stmt.executeQuery();
         } catch (SQLException e) {

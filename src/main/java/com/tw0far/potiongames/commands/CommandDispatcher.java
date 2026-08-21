@@ -23,6 +23,10 @@ public class CommandDispatcher implements CommandExecutor, TabCompleter {
     private final PotionGamesX plugin;
     private final Map<String, ICommand> commands = new HashMap<>();
 
+    /** Subcommands that also work from the server console. */
+    private static final Set<String> CONSOLE_ALLOWED = Set.of(
+        "reload", "status", "top", "broadcast", "version", "database", "gameserver", "config");
+
     public CommandDispatcher(PotionGamesX plugin) {
         this.plugin = plugin;
     }
@@ -63,13 +67,12 @@ public class CommandDispatcher implements CommandExecutor, TabCompleter {
         registerCommand(new AddDeathmatchCommand(plugin));
         registerCommand(new DelDeathmatchCommand(plugin));
         registerCommand(new JoinSignCommand(plugin));
-        registerCommand(new HeadP1Command(plugin));
-        registerCommand(new HeadP2Command(plugin));
-        registerCommand(new HeadP3Command(plugin));
-        registerCommand(new SignP1Command(plugin));
-        registerCommand(new SignP2Command(plugin));
-        registerCommand(new SignP3Command(plugin));
-
+        registerCommand(new StatsWallCommand(plugin, true, 1));
+        registerCommand(new StatsWallCommand(plugin, true, 2));
+        registerCommand(new StatsWallCommand(plugin, true, 3));
+        registerCommand(new StatsWallCommand(plugin, false, 1));
+        registerCommand(new StatsWallCommand(plugin, false, 2));
+        registerCommand(new StatsWallCommand(plugin, false, 3));
         // Admin commands - Game control
         registerCommand(new BuildCommand(plugin));
         registerCommand(new PauseCommand(plugin));
@@ -86,20 +89,11 @@ public class CommandDispatcher implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, String[] args) {
-        boolean isPlayer = (sender instanceof Player);
-
         // Show help if no args
         if (args.length == 0) {
             ICommand helpCmd = commands.get("help");
             if (helpCmd != null) {
-                if (isPlayer) {
-                    return helpCmd.execute((Player) sender, args);
-                }
-                sender.sendMessage(Component.text("PotionGamesX Commands:").color(NamedTextColor.AQUA));
-                for (ICommand command : commands.values()) {
-                    sender.sendMessage(Component.text("  " + command.getUsage()).color(NamedTextColor.GRAY));
-                }
-                return true;
+                return helpCmd.execute(sender, args);
             }
             return true;
         }
@@ -114,26 +108,23 @@ public class CommandDispatcher implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        // Check if command requires a player
-        if (!isPlayer) {
+        // Check if the command requires a player (most do; a subset is console-safe)
+        if (!(sender instanceof Player) && !CONSOLE_ALLOWED.contains(subCommand)) {
             sender.sendMessage(Component.text("This command can only be used by players!").color(NamedTextColor.RED));
             return true;
         }
 
-        Player player = (Player) sender;
-
         // Check permission
-        if (command.getPermission() != null && !player.hasPermission(command.getPermission())) {
-            player.sendMessage(createError("You don't have permission to use this command!"));
+        if (command.getPermission() != null && !sender.hasPermission(command.getPermission())) {
+            sender.sendMessage(createError("You don't have permission to use this command!"));
             return true;
         }
 
-
         // Execute command
         try {
-            return command.execute(player, args);
+            return command.execute(sender, args);
         } catch (Exception e) {
-            player.sendMessage(createError(Messages.CommandExecutionErrorText()));
+            sender.sendMessage(createError(Messages.CommandExecutionErrorText()));
             plugin.getLogger().severe("Error executing command " + subCommand + ": " + e.getMessage());
             e.printStackTrace();
             return true;

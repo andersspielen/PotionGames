@@ -3,7 +3,7 @@ package com.tw0far.potiongames.commands;
 import com.tw0far.potiongames.PotionGamesX;
 import com.tw0far.potiongames.models.Messages;
 import com.tw0far.potiongames.models.Settings;
-import org.bukkit.entity.Player;
+import org.bukkit.command.CommandSender;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 
@@ -29,7 +29,7 @@ public class HelpCommand implements ICommand {
 
 
     @Override
-    public boolean execute(Player player, String[] args) {
+    public boolean execute(CommandSender player, String[] args) {
         player.sendMessage(Messages.CommandsLabel());
 
         if (player.hasPermission("pg.setup")) {

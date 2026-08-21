@@ -12,7 +12,6 @@ public class ConfigurationManager implements IConfigurationManager {
     private int minPlayers = 2;
     private int teamSize = 2;
     private int maxPlayers = 24;
-    private int activePotions = 19;
     private int activeKits = 6;
     private int winningReward = 100;
     private int killReward = 10;
@@ -29,6 +28,11 @@ public class ConfigurationManager implements IConfigurationManager {
     private boolean startOnJoin = false;
     private boolean friendlyFire = false;
     private boolean gameServer = false;
+    private boolean joinStarted = false;
+    private boolean allowOutsideChat = false;
+    private boolean broadcastStarting = false;
+    private boolean compassOnSpawn = false;
+    private boolean changeGamerules = true;
 
     private String host = "localhost";
     private String port = "3306";
@@ -61,7 +65,6 @@ public class ConfigurationManager implements IConfigurationManager {
         minPlayers = config.getInt("pg.defaults.minPlayers", 2);
         teamSize = config.getInt("pg.defaults.teamSize", 2);
         maxPlayers = config.getInt("pg.defaults.maxPlayers", 24);
-        activePotions = config.getInt("pg.activePotions", 19);
         activeKits = config.getInt("pg.activeKits", 6);
         winningReward = config.getInt("pg.winningReward", 100);
         killReward = config.getInt("pg.killReward", 10);
@@ -76,6 +79,11 @@ public class ConfigurationManager implements IConfigurationManager {
         enableRewards = config.getBoolean("pg.enableRewards", false);
 
         startOnJoin = config.getBoolean("pg.startOnJoin", false);
+        joinStarted = config.getBoolean("pg.joinStarted", false);
+        allowOutsideChat = config.getBoolean("pg.allowOutsideChat", false);
+        broadcastStarting = config.getBoolean("pg.broadcastStarting", false);
+        compassOnSpawn = config.getBoolean("pg.compassOnSpawn", false);
+        changeGamerules = config.getBoolean("pg.changeGamerules", true);
         friendlyFire = config.getBoolean("pg.friendlyFire", false);
         gameServer = config.getBoolean("pg.gameServer", false);
 
@@ -102,9 +110,6 @@ public class ConfigurationManager implements IConfigurationManager {
 
     @Override
     public int getMaxPlayers() { return maxPlayers; }
-
-    @Override
-    public int getActivePotions() { return activePotions; }
 
     @Override
     public int getActiveKits() { return activeKits; }
@@ -168,6 +173,21 @@ public class ConfigurationManager implements IConfigurationManager {
 
     @Override
     public boolean isEnableRewards() { return enableRewards; }
+
+    @Override
+    public boolean isJoinStarted() { return joinStarted; }
+
+    @Override
+    public boolean isAllowOutsideChat() { return allowOutsideChat; }
+
+    @Override
+    public boolean isBroadcastStarting() { return broadcastStarting; }
+
+    @Override
+    public boolean isCompassOnSpawn() { return compassOnSpawn; }
+
+    @Override
+    public boolean isChangeGamerules() { return changeGamerules; }
 
     @Override
     public void setGameServer(boolean gameServer) { this.gameServer = gameServer; }

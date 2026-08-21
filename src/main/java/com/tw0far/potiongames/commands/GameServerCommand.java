@@ -4,6 +4,7 @@ import com.tw0far.potiongames.PotionGamesX;
 import com.tw0far.potiongames.models.Messages;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 /**
@@ -28,7 +29,7 @@ public class GameServerCommand implements ICommand {
 
 
     @Override
-    public boolean execute(Player player, String[] args) {
+    public boolean execute(CommandSender player, String[] args) {
         // Get current state
         boolean currentState = plugin.getConfigManager().isGameServer();
         boolean newState = !currentState;

@@ -30,7 +30,6 @@ public class Messages {
         addDefault(lang, "arena.removed", "Arena %s removed successfully. (Lobby: %d)");
         addDefault(lang, "spawn.added", "Spawn %d added successfully. (Arena: %s, Lobby: %d)");
         addDefault(lang, "spawn.removed", "Spawn %d removed successfully. (Arena: %s, Lobby: %d)");
-        addDefault(lang, "admin.please_inform", "Please inform an admin!");
         addDefault(lang, "airdrop.falling_at", "Airdrop is falling at");
         addDefault(lang, "airdrop.falling_here", "Airdrop is falling at your location!");
         addDefault(lang, "arena.could_not_load", "Could not load an arena!");
@@ -42,15 +41,8 @@ public class Messages {
         addDefault(lang, "coin.single", "Coin");
         addDefault(lang, "coins.label", "Coins");
         addDefault(lang, "commands.label", "Commands");
-        addDefault(lang, "database.closed", "Connection to database closed!");
-        addDefault(lang, "database.close_failed", "Failed to close connection to database! For more information see console.");
-        addDefault(lang, "database.connect_failed", "Connection to database failed! For more information see console.");
-        addDefault(lang, "database.connected", "Connection to database established!");
-        addDefault(lang, "dead.label", "[Dead]");
         addDefault(lang, "deathmatch.started", "Deathmatch started!");
         addDefault(lang, "deathmatch.starting_in", "Deathmatch is starting in");
-        addDefault(lang, "deathmatch.teleport_in", "Teleporting to deathmatch arena in");
-        addDefault(lang, "deathmatch.teleport_now", "Teleporting to deathmatch arena now!");
         addDefault(lang, "deaths.label", "Deaths");
         addDefault(lang, "duration.label", "Duration");
         addDefault(lang, "error.generic", "An error occurred");
@@ -59,10 +51,8 @@ public class Messages {
         addDefault(lang, "game.started", "The game has been started!");
         addDefault(lang, "game.not_enough_players", "Not enough players to start the game!");
         addDefault(lang, "game.starts_in", "The game starts in");
-        addDefault(lang, "game.starts_now", "The game starts now!");
         addDefault(lang, "game.waiting", "Waiting for players! [%d/%d]");
         addDefault(lang, "help.use_pg_help", "Use /pg help for help!");
-        addDefault(lang, "join.could_not_join_lobby", "Could not join lobby!");
         addDefault(lang, "join.already_in_lobby", "You are already in a lobby!");
         addDefault(lang, "kd.label", "K/D");
         addDefault(lang, "kill.reward", "For killing a player you get");
@@ -72,11 +62,9 @@ public class Messages {
         addDefault(lang, "kit.now_have", "You now have the kit");
         addDefault(lang, "kit.selector", "Kit-Selector");
         addDefault(lang, "leave.label", "Leave");
-        addDefault(lang, "lobby.could_not_spawn", "could not be teleported to a spawn!");
-        addDefault(lang, "lobby.could_not_teleport", "could not be teleported to the lobby!");
         addDefault(lang, "lobby.does_not_exist", "This lobby does not exists!");
         addDefault(lang, "arena.does_not_exist", "This arena does not exists!");
-        addDefault(lang, "lobby.removed_success", "Lobby successfully removed!");
+        addDefault(lang, "lobby.full", "This lobby is full!");
         addDefault(lang, "lobby.starting_broadcast", "Lobby %s is starting! Join with /pg join %s");
         addDefault(lang, "lobby.success_set", "Lobby successfully set!");
         addDefault(lang, "lost.label", "Losses");
@@ -101,18 +89,15 @@ public class Messages {
         addDefault(lang, "setup.join_sign", "Set Join-Sign");
         addDefault(lang, "setup.leave_mode", "Leave Setup-Mode");
         addDefault(lang, "sign.prefix", "[PG]");
-        addDefault(lang, "build.label", "Build");
         addDefault(lang, "lobby.selected", "Lobby %d selected!");
         addDefault(lang, "arena.selected", "Arena %s selected!");
         addDefault(lang, "lobby.invalid_selection", "Invalid lobby selection!");
         addDefault(lang, "players.label", "Players");
-        addDefault(lang, "plugin.reloaded", "Plugin successfully reloaded!");
         addDefault(lang, "plugin.started", "Plugin started successfully!");
         addDefault(lang, "plugin.stopped", "Plugin stopped successfully!");
         addDefault(lang, "price.label", "Price");
         addDefault(lang, "random.label", "Random");
         addDefault(lang, "rankwall.could_not_update", "Could not update Rank-Wall!");
-        addDefault(lang, "reward.label", "Reward");
         addDefault(lang, "round.nobody_won", "Nobody won this round!");
         addDefault(lang, "round.seconds_remaining", "seconds remaining to end this round!");
         addDefault(lang, "round.minutes_remaining", "minutes remaining to end this round!");
@@ -121,32 +106,21 @@ public class Messages {
         addDefault(lang, "server.stopped", "Server stopped!");
         addDefault(lang, "shop.label", "Shop");
         addDefault(lang, "sign.set", "Sign successfully set!");
-        addDefault(lang, "spawn.invalid", "is not a valid spawn!");
         addDefault(lang, "stats.label", "Stats");
         addDefault(lang, "team.already_full", "This team is already full!");
         addDefault(lang, "team.now_in", "You are now in team");
-        addDefault(lang, "teleport.to_arena_failed", "Could not teleport to arena!");
-        addDefault(lang, "teleport.to_dm_failed", "Could not teleport to deathmatch arena!");
         addDefault(lang, "teleport.to_lobby_in", "Teleporting to lobby in");
-        addDefault(lang, "teleport.to_lobby_now", "Teleporting to lobby now!");
-        addDefault(lang, "tnt.extremely_explosive", "Extremely explosive TNT");
         addDefault(lang, "type.arena_name_add", "Type arena name in chat to add it!");
-        addDefault(lang, "type.arena_name_remove", "Type arena name in chat to remove it!");
-        addDefault(lang, "type.lobby_number_add", "Type lobby number in chat to add it!");
-        addDefault(lang, "type.lobby_number_remove", "Type lobby number in chat to remove it!");
         addDefault(lang, "update.available", "There is a new update available. %s -> %s");
         addDefault(lang, "update.checker_error", "Update-Checker-Error");
         addDefault(lang, "update.not_available", "There is not a new update available.");
         addDefault(lang, "vote.label", "Votes");
-        addDefault(lang, "vote.you_have_voted_for", "You have voted for");
         addDefault(lang, "will_be_played", "will be played!");
         addDefault(lang, "winner.has_won_the_game", "has won the game!");
         addDefault(lang, "won.label", "Wins");
         addDefault(lang, "you.block_above", "You have a block above you!");
-        addDefault(lang, "you.in_spectator_mode", "in spectator mode");
         addDefault(lang, "won.reward", "For winning the round you get");
         addDefault(lang, "player.finder_distance", "Blocks away from next player");
-        addDefault(lang, "join.leave_success", "Successfully left lobby");
         addDefault(lang, "you.not_empty_bottle", "You not have an empty bottle!");
         addDefault(lang, "you.not_enough_coins", "You not have enough Coins!");
 
@@ -357,6 +331,15 @@ public class Messages {
         return prefix(Component.text(get("lobby.does_not_exist", "This lobby does not exists!")).color(NamedTextColor.RED));
     }
 
+    public static Component LobbyFull() {
+        return prefix(Component.text(get("lobby.full", "This lobby is full!")).color(NamedTextColor.RED));
+    }
+
+    public static Component LobbyStartingBroadcast(String lobbyId) {
+        String pattern = get("lobby.starting_broadcast", "Lobby %s is starting! Join with /pg join %s");
+        return prefix(Component.text(String.format(pattern, lobbyId, lobbyId)).color(NamedTextColor.GRAY));
+    }
+
     public static Component ArenaDoesNotExist() {
         return prefix(Component.text(get("arena.does_not_exist", "This arena does not exists!")).color(NamedTextColor.RED));
     }
@@ -436,6 +419,10 @@ public class Messages {
 
     public static Component NoSpawnsToRemove() {
         return prefix(Component.text(get("spawn.none_to_remove", "No spawns to remove!")).color(NamedTextColor.YELLOW));
+    }
+
+    public static Component NoDeathmatchSpawnsToRemove() {
+        return prefix(Component.text(get("deathmatch_spawn.none_to_remove", "No deathmatch spawns to remove!")).color(NamedTextColor.YELLOW));
     }
 
     public static Component SetupAddDeleteLobbyLabel() {
@@ -703,6 +690,29 @@ public class Messages {
     public static String HelpTopText() { return get("help.top", "/pg top [type] - Show leaderboard (kills/deaths/wins/kd)"); }
     public static String HelpVersionText() { return get("help.version", "/pg version - Show your and latest version of plugin"); }
     public static String HelpVersionUsageText() { return get("help.version_usage", "/pg version - Check plugin version and updates (requires pg.update)"); }
+    public static String HeadLookBlockText(int place) {
+        return get("head.look_block_" + place, "Look at a block to set the " + place + (place == 1 ? "st" : place == 2 ? "nd" : "rd") + " place head.");
+    }
+
+    public static String HeadSetText(int place) {
+        return get("head.set_" + place, place + (place == 1 ? "st" : place == 2 ? "nd" : "rd") + " place head set.");
+    }
+
+    public static String SignLookSignText(int place) {
+        return get("sign.look_sign_" + place, "Look at a sign to set the " + place + (place == 1 ? "st" : place == 2 ? "nd" : "rd") + " place sign.");
+    }
+
+    public static String SignSetText(int place) {
+        return get("sign.set_" + place, place + (place == 1 ? "st" : place == 2 ? "nd" : "rd") + " place sign set.");
+    }
+
+    public static String HelpHeadpUsageText(int place) {
+        return get("help.headp" + place + "_usage", "/pg headp" + place + " (Look at the " + place + "st place head)");
+    }
+
+    public static String HelpSignpUsageText(int place) {
+        return get("help.signp" + place + "_usage", "/pg signp" + place + " (Look at the " + place + "st place sign)");
+    }
     public static String KilledByText() { return get("killed.by", "was killed by"); }
     public static String ListNoLobbiesText() { return get("list.no_lobbies", "No lobbies available."); }
     public static String SetupDisabledText() { return get("setup.disabled", "Setup mode disabled."); }

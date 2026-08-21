@@ -13,7 +13,6 @@ public interface IConfigurationManager extends IManager {
     int getMinPlayers();
     int getTeamSize();
     int getMaxPlayers();
-    int getActivePotions();
     int getActiveKits();
     int getWinningReward();
     int getKillReward();
@@ -38,6 +37,13 @@ public interface IConfigurationManager extends IManager {
     boolean isFriendlyFire();
     boolean isGameServer();
     boolean isEnableRewards();
+
+    // Gameplay toggles
+    boolean isJoinStarted();
+    boolean isAllowOutsideChat();
+    boolean isBroadcastStarting();
+    boolean isCompassOnSpawn();
+    boolean isChangeGamerules();
 
     void setGameServer(boolean gameServer);
 

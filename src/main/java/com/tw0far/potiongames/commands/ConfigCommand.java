@@ -3,7 +3,7 @@ package com.tw0far.potiongames.commands;
 import com.tw0far.potiongames.PotionGamesX;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.entity.Player;
+import org.bukkit.command.CommandSender;
 
 /**
  * /pg config - View current plugin configuration settings
@@ -27,7 +27,7 @@ public class ConfigCommand implements ICommand {
 
 
     @Override
-    public boolean execute(Player player, String[] args) {
+    public boolean execute(CommandSender player, String[] args) {
         var config = plugin.getConfigManager();
 
         player.sendMessage(Component.text("").color(NamedTextColor.DARK_GRAY)

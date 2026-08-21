@@ -1,7 +1,5 @@
 package com.tw0far.potiongames.commands;
 
-import org.bukkit.entity.Player;
-
 /**
  * Interface for individual command handlers.
  */
@@ -19,7 +17,7 @@ public interface ICommand {
     /**
      * Execute the command
      */
-    boolean execute(Player player, String[] args);
+    boolean execute(org.bukkit.command.CommandSender sender, String[] args);
 
     /**
      * Get usage information

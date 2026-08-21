@@ -1,7 +1,9 @@
 package com.tw0far.potiongames.handlers;
 
 import com.tw0far.potiongames.PotionGamesX;
+import com.tw0far.potiongames.models.GameStates;
 import com.tw0far.potiongames.models.Lobby;
+import com.tw0far.potiongames.models.Messages;
 import org.bukkit.entity.Player;
 
 public class JoinLobbyHandler {
@@ -17,9 +19,28 @@ public class JoinLobbyHandler {
         }
         try {
             Lobby lobby = plugin.getGame().getLobby(Integer.parseInt(lobbyId));
-            if (lobby != null) {
-                lobby.join(player);
+            if (lobby == null) {
+                player.sendMessage(Messages.LobbyDoesNotExist());
+                return;
             }
-        } catch (NumberFormatException ignored) { }
+
+            if (lobby.canJoin()) {
+                lobby.join(player);
+                return;
+            }
+
+            // Late join: watch a running round as spectator when allowed
+            if (plugin.getConfigManager().isJoinStarted() && lobby.canSpectate()) {
+                lobby.joinAsSpectator(player);
+                return;
+            }
+
+            if (lobby.canSpectate()) {
+                player.sendMessage(Messages.GameAlreadyStarted());
+            } else {
+                player.sendMessage(Messages.LobbyFull());
+            }
+        } catch (NumberFormatException ignored) {
+        }
     }
 }

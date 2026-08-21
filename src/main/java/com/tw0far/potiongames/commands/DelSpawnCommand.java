@@ -1,7 +1,10 @@
 package com.tw0far.potiongames.commands;
 
+import org.bukkit.command.CommandSender;
 import com.tw0far.potiongames.PotionGamesX;
+import org.bukkit.command.CommandSender;
 import com.tw0far.potiongames.models.Lobby;
+import org.bukkit.command.CommandSender;
 import com.tw0far.potiongames.models.Messages;
 import org.bukkit.entity.Player;
 
@@ -28,7 +31,11 @@ public class DelSpawnCommand implements ICommand {
 
 
     @Override
-    public boolean execute(Player player, String[] args) {
+    public boolean execute(CommandSender sender, String[] args) {
+        if (!(sender instanceof org.bukkit.entity.Player player)) {
+            sender.sendMessage(net.kyori.adventure.text.Component.text("This command can only be used by players!").color(net.kyori.adventure.text.format.NamedTextColor.RED));
+            return true;
+        }
         // Multi-lobby system: /pg delspawn <lobbynumber> <arenaname>
         if (args.length < 3) {
             player.sendMessage(Messages.CommandDelspawnUsageText());

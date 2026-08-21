@@ -48,7 +48,7 @@ public class ChatEventListener implements Listener {
             lobbyId = plugin.getGame().getSpectatorLobby(p);
         }
 
-        if (lobbyId != null) {
+        if (lobbyId != null && !plugin.getConfigManager().isAllowOutsideChat()) {
             // Filter recipients: only players in the same lobby (plus console)
             e.viewers().clear();
             e.viewers().add(Bukkit.getConsoleSender());

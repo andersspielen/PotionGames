@@ -110,8 +110,10 @@ public class PotionGamesX extends JavaPlugin {
         pm.registerEvents(new CreatureSpawnEventListener(this), this);
         pm.registerEvents(new SignChangeEventListener(), this);
 
-        // Inventory events
-        pm.registerEvents(new InventoryEventListener(this), this);
+        // Inventory & interaction events
+        pm.registerEvents(new GameInventoryListener(this), this);
+        pm.registerEvents(new GameItemListener(this), this);
+        pm.registerEvents(new SetupInteractionListener(this), this);
 
         // Register new command dispatcher (refactored from monolithic Commands.java)
         CommandDispatcher dispatcher = new CommandDispatcher(this);

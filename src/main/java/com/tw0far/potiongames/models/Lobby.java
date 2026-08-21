@@ -14,8 +14,10 @@ import java.util.logging.Logger;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 
 import org.bukkit.GameMode;
+import org.bukkit.GameRule;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
 import org.bukkit.block.data.BlockData;
@@ -68,6 +70,11 @@ public class Lobby {
     private boolean deathmatch = false;
     private boolean joinable = true;
     private boolean pause = false;
+
+    // Gamerule restore points (pg.changeGamerules)
+    private World gameruleWorld = null;
+    private Boolean prevDaylight = null;
+    private Boolean prevWeather = null;
 
     // Per-lobby chests
     private HashMap<Location, ItemStack[]> chests = new HashMap<>();
@@ -343,10 +350,49 @@ public class Lobby {
     }
 
     public void join(Player p) {
-        if (!activePlayers.contains(p)) {
-            activePlayers.add(p);
-        }
+        activePlayers.add(p);
         addParticipant(p);
+    }
+
+    /**
+     * A player may actively join only while the lobby waits or counts down
+     * and has free slots.
+     */
+    public boolean canJoin() {
+        return playerCount < maxPlayers
+            && (state == GameStates.WAITING || state == GameStates.PREPARING);
+    }
+
+    /**
+     * Spectating a running round is possible while fights are ongoing.
+     */
+    public boolean canSpectate() {
+        return state == GameStates.INGAME || state == GameStates.DEATHMATCH;
+    }
+
+    /**
+     * Late join: become an invisible spectator of the running round.
+     */
+    public void joinAsSpectator(Player p) {
+        if (p == null) {
+            return;
+        }
+        removeActivePlayer(p);
+        spectatorPlayers.add(p);
+        p.setGameMode(GameMode.SPECTATOR);
+        Location target = null;
+        if (currentArena != null) {
+            ArrayList<Location> spawns = currentArena.getSpawns();
+            if (!spawns.isEmpty()) {
+                target = spawns.get(0);
+            }
+        }
+        if (target == null) {
+            target = spawn;
+        }
+        if (target != null) {
+            p.teleport(target);
+        }
     }
 
     public void leave(Player p) {
@@ -503,6 +549,69 @@ public class Lobby {
         endingTimer = Math.max(1, reset);
     }
 
+    /**
+     * Give gameplay items (player-finder compass) to everyone at round start.
+     */
+    private void giveSpawnItems() {
+        if (!PotionGamesX.getInstance().getConfigManager().isCompassOnSpawn()) {
+            return;
+        }
+        ItemStack compass = new ItemStack(Material.COMPASS);
+        org.bukkit.inventory.meta.ItemMeta meta = compass.getItemMeta();
+        if (meta != null) {
+            meta.displayName(Messages.PlayerFinder());
+            compass.setItemMeta(meta);
+        }
+        for (Player player : activePlayers) {
+            if (player != null && player.isOnline()) {
+                player.getInventory().addItem(compass);
+            }
+        }
+    }
+
+    /**
+     * Freeze daylight/weather in the arena world while the round runs.
+     */
+    private void applyGameRules() {
+        if (!PotionGamesX.getInstance().getConfigManager().isChangeGamerules()) {
+            return;
+        }
+        World world = resolveArenaWorld();
+        if (world == null || gameruleWorld != null) {
+            return;
+        }
+        gameruleWorld = world;
+        prevDaylight = world.getGameRuleValue(GameRule.DO_DAYLIGHT_CYCLE);
+        prevWeather = world.getGameRuleValue(GameRule.DO_WEATHER_CYCLE);
+        world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
+        world.setGameRule(GameRule.DO_WEATHER_CYCLE, false);
+    }
+
+    private void restoreGameRules() {
+        if (gameruleWorld == null) {
+            return;
+        }
+        if (prevDaylight != null) {
+            gameruleWorld.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, prevDaylight);
+        }
+        if (prevWeather != null) {
+            gameruleWorld.setGameRule(GameRule.DO_WEATHER_CYCLE, prevWeather);
+        }
+        gameruleWorld = null;
+        prevDaylight = null;
+        prevWeather = null;
+    }
+
+    private World resolveArenaWorld() {
+        if (currentArena != null) {
+            ArrayList<Location> spawns = currentArena.getSpawns();
+            if (!spawns.isEmpty() && spawns.get(0).getWorld() != null) {
+                return spawns.get(0).getWorld();
+            }
+        }
+        return spawn != null ? spawn.getWorld() : null;
+    }
+
     public void runGameTick() {
         if (pause) {
             return;
@@ -516,6 +625,10 @@ public class Lobby {
                 if (playerCount >= minPlayers) {
                     prepareTimer = Math.max(1, countdown);
                     setState(GameStates.PREPARING);
+                    PotionGamesX plugin = PotionGamesX.getInstance();
+                    if (plugin.getConfigManager().isBroadcastStarting()) {
+                        plugin.getServer().broadcast(Messages.LobbyStartingBroadcast(Integer.toString(id)));
+                    }
                 }
                 break;
             case PREPARING:
@@ -529,6 +642,8 @@ public class Lobby {
                     if (currentArena != null) {
                         distributeTeams();
                         currentArena.teleport(participants);
+                        applyGameRules();
+                        giveSpawnItems();
                     }
                     gameTimer = Math.max(1, roundTime * 60);
                     deathmatch = false;
@@ -589,6 +704,7 @@ public class Lobby {
                 break;
             case RESET:
                 restoreBlocks();
+                restoreGameRules();
                 PotionGamesX plugin = PotionGamesX.getInstance();
                 // On a dedicated game server, send everyone back to the hub
                 if (plugin.getConfigManager().isGameServer()) {

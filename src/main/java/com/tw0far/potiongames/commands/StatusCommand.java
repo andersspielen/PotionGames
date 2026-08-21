@@ -4,7 +4,7 @@ import com.tw0far.potiongames.PotionGamesX;
 import com.tw0far.potiongames.models.Lobby;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.entity.Player;
+import org.bukkit.command.CommandSender;
 
 /**
  * /pg status - Show active lobbies, player counts, and database connection status
@@ -28,7 +28,7 @@ public class StatusCommand implements ICommand {
 
 
     @Override
-    public boolean execute(Player player, String[] args) {
+    public boolean execute(CommandSender player, String[] args) {
         var game = plugin.getGame();
         var lobbies = game.getLobbies();
 

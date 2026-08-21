@@ -4,7 +4,7 @@ import com.tw0far.potiongames.PotionGamesX;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
+import org.bukkit.command.CommandSender;
 
 /**
  * /pg broadcast <message> - Send announcement to all players
@@ -26,7 +26,7 @@ public class BroadcastCommand implements ICommand {
 
 
     @Override
-    public boolean execute(Player player, String[] args) {
+    public boolean execute(CommandSender player, String[] args) {
         if (args.length < 2) {
             player.sendMessage(Component.text("Usage: /pg broadcast <message>").color(NamedTextColor.RED));
             return true;
